@@ -110,8 +110,20 @@ var K50Build = (function () {
         io.copy(work + '/' + packedName, work + '/' + acxName);
         io.writeText(work + '/package-verification.txt', 'VERIFIED PACKAGING ONLY: ' + variant + '\r\n');
     }
+    function publishStandardStream(io, work, target) {
+        requireCondition(io.readText(work + '/variant.txt').replace(/\s/g, '') === 'STANDARD_K50',
+                         'Only STANDARD_K50 may publish the BIOS STREAM.BIN');
+        // Revalidate the actual inputs; a marker file alone is not sufficient.
+        var raw = io.readBytes(work + '/STREAM50.BIN');
+        verify(io.readText(work + '/SP2_ACEX.rpt'), io.size(work + '/SP2_ACEX.sof'),
+               io.readText(work + '/SP2_ACEX.ttf'), raw,
+               io.readBytes(work + '/K50.ACX'), io.readBytes(work + '/roundtrip.bin'));
+        io.copy(work + '/STREAM50.BIN', target);
+        compare(io.readBytes(target), raw, 'Published BIOS stream');
+    }
     return {transformAcf: transformAcf, parseTtf: parseTtf, verify: verify,
-            prepare: prepare, verifyDirectory: verifyDirectory};
+            prepare: prepare, verifyDirectory: verifyDirectory,
+            publishStandardStream: publishStandardStream};
 }());
 
 if (typeof module !== 'undefined') { module.exports = K50Build; }
@@ -142,11 +154,14 @@ if (typeof WScript !== 'undefined') {
             size: function (p) { return fso.GetFile(path(p)).Size; },
             copy: function (a, b) { fso.CopyFile(path(a), path(b), true); }
         };
-        if (WScript.Arguments.length !== 3) { throw new Error('Usage: k50_build.js Prepare|Verify work GAME_K30|GAME_K50|STANDARD_K50'); }
+        if (WScript.Arguments.length !== 3) { throw new Error('Usage: k50_build.js Prepare|Verify|PublishStandard work GAME_K30|GAME_K50|STANDARD_K50'); }
         var stage = WScript.Arguments(0), work = path(WScript.Arguments(1)), variant = WScript.Arguments(2);
         var source = fso.BuildPath(fso.GetParentFolderName(fso.GetParentFolderName(WScript.ScriptFullName)), 'altera\\acex');
         if (stage === 'Prepare') { K50Build.prepare(io, source, work, variant); }
         else if (stage === 'Verify') { K50Build.verifyDirectory(io, work, variant); }
+        else if (stage === 'PublishStandard' && variant === 'STANDARD_K50') {
+            K50Build.publishStandardStream(io, work, fso.BuildPath(source, 'STREAM.BIN'));
+        }
         else { throw new Error('Invalid stage'); }
         WScript.Quit(0);
     } catch (error) {

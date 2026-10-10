@@ -89,7 +89,7 @@ class Video:
         self.fetch_x = self.fetch_y = 0
         self.palette = 0
         self.sample = None
-        self.control = False
+        self.pending = None
         self.acceptances = 0
         self.scroll_loads = 0
         self.cpu_address = 0x23450
@@ -122,6 +122,10 @@ class Video:
                                          address, bank, color, self.palette, bool(blank), bool(irq))
             # Physical CTV increments at the end of CTH=48 (not at X wrap).
             nx = (self.x + 1) % 448
+            if self.local_x == 7 and self.pending is not None:
+                self.scroll = self.pending
+                self.pending = None
+                self.scroll_loads += 1
             ny = (self.y + (self.x == 391)) % 320
             self.fetch_x = (nx + (self.scroll & 15)) % 448
             self.fetch_y = (ny + (self.scroll >> 4)) % 320
@@ -133,9 +137,10 @@ class Video:
         elif phase == 5:
             banks = self.ram.read_banks(self.now)
             self.mode = banks[::-1]
-            self.control = self.last != self.request and bool(self.mode[0] & 4)
             if self.last != self.request:
                 self.acceptances += 1
+                if self.mode[0] & 4:
+                    self.pending = self.mode[3]
             self.last = self.request
             address, slot = self.cpu_address, 'cpu'
             if self.cpu_write is not None:
@@ -150,9 +155,6 @@ class Video:
         if len(self.slots) > 12:
             del self.slots[:6]
         if phase == 6:
-            if self.control:
-                self.scroll = self.mode[3]
-                self.scroll_loads += 1
             self.y = (self.y + (self.x == 391)) % 320
             self.x = (self.x + 1) % 448
         self.phase = PHASES[(PHASES.index(phase) + 1) % 6]

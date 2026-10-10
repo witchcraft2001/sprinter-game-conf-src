@@ -72,6 +72,21 @@ try {
         assert.ok(!io.exists(work + '/K50.ACX'));
         assert.throws(() => build.verifyDirectory(io, work, 'GAME_K30'), /already exists/);
     });
+    test('legacy BIOS stream publishes only validated standard raw data', () => {
+        const work = temp + '/STANDARD_K50', target = temp + '/STREAM.BIN';
+        fixture(work);
+        fs.writeFileSync(target, 'previous BIOS stream');
+        assert.throws(() => build.publishStandardStream(io, work, target));
+        assert.strictEqual(io.readText(target), 'previous BIOS stream');
+        build.verifyDirectory(io, work, 'STANDARD_K50');
+        build.publishStandardStream(io, work, target);
+        assert.deepStrictEqual(io.readBytes(target), raw);
+        assert.throws(() => build.publishStandardStream(io, temp + '/GAME_K50', target), /Only STANDARD/);
+        assert.throws(() => build.publishStandardStream(io, temp + '/GAME_K30', target), /Only STANDARD/);
+        fs.writeFileSync(work + '/STREAM50.BIN', Buffer.from([1,2,3]));
+        assert.throws(() => build.publishStandardStream(io, work, target));
+        assert.deepStrictEqual(io.readBytes(target), raw);
+    });
     const cases = [
         ['wrong chip', report.replace('EP1K50', 'EP1K30'), 1, ttf, raw, packed, raw],
         ['two chips', report + 'Device: EP1K50QC208-3\n', 1, ttf, raw, packed, raw],

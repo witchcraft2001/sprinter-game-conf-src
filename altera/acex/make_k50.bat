@@ -1,4 +1,4 @@
 @echo off
-rem Compatibility entry: always compile a fresh standard K50.
-call "%~dp0make_standard_k50.bat"
+rem Legacy BIOS entry: fresh standard K50, then validated raw STREAM.BIN.
+call "%~dp0build_k50.cmd" STANDARD_K50 EXPORT_STREAM
 exit /b %errorlevel%

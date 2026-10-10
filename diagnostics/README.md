@@ -16,7 +16,15 @@ BIOS AcexSetUpNow. Требования к BIOS и восстановлению 
 и отчёта сборки.
 
 `uv run --with z80 python diagnostics/simulate_game_diag.py` исполняет собранный
-EXE на Z80 с моделями BIOS/DSS/VRAM; 18 сценариев прошли локально.
+EXE на Z80 с моделями BIOS/DSS/VRAM; 23 сценария прошли локально.
+
+После reconfiguration восстанавливается HOLD (CBh) из CMOS ScreenPosition
+через BIOS F6/F8. В F6 передаётся **D=1Fh**, как задаёт ScreenPosition в
+`sprinter_bios/Shared_Includes/constants/SP2000.inc`; D=0 читает секунды RTC.
+Ранее скопированный из TITDREV адрес 0 был ошибкой и исправлен.
+Это нужно для сравнения положения изображения
+со стандартной конфигурацией. При ошибке чтения CMOS остаётся положение после
+reset; ошибка записи HOLD завершает диагностику. Сам растр FPGA этот код не меняет.
 
 После reconfiguration программа не вызывает DSS video API. Она напрямую пишет
 VRAM и palette через существующие PAGE3/PORT_Y, опрашивает ZX keyboard matrix с

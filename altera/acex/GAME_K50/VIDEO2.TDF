@@ -149,8 +149,6 @@ VARIABLE
 
 
 
-	WR_PIC		: DFF;
-	WR_COL		: DFF;
 
 
 	MXWE		: NODE;
@@ -179,8 +177,10 @@ VARIABLE
 	G_SCROLL[7..0] : DFFE;
 	G_REQUEST[15..0] : DFFE;
 	G_LAST[15..0] : DFFE;
-	G_VALID : DFFE;
-	G_CONTROL : DFFE;
+	G_PENDING[7..0] : DFFE;
+	G_PENDING_VALID : DFFE;
+	G_APPLY : NODE;
+	G_EFFECTIVE[7..0] : NODE;
 	G_LOCAL_X[2..0] : DFFE;
 	G_LOCAL_Y[2..0] : DFFE;
 	G_YBASE[7..0] : NODE;
@@ -196,8 +196,6 @@ VARIABLE
 	G_INDEX[7..0] : NODE;
 	G_PALETTE[10..0] : NODE;
 
-	WR_MODE		: DFF;
-	X_MODE_BOND	: NODE;
 
 --	M_CTV[2..0]	: DFF;
 --	M_CT[5..3]  : DFF;
@@ -229,9 +227,8 @@ VARIABLE
 BEGIN
 
 	DEFAULTS
-		WR_MODE.d	= VCC; -- WR_MODE2.d	= VCC; -- WR_MODE2X.d	= VCC;
 		V_CST[].d	= VCC; V_WR[]		= VCC; TSN_W3.d		= VCC;
-		V_WE.d		= VCC; WR_COL.d		= VCC; WR_PIC.d		= VCC;
+		V_WE.d		= VCC;
 		V_WET[].d	= VCC;
 	END DEFAULTS;
 
@@ -436,8 +433,6 @@ IF MODE == "SPRINTER" GENERATE
 			V_WE.d = VCC;
 			V_WEX.d = VCC;
 		WHEN 1,5 => -- CT=0,1: issue/hold the same pixel address
-			WR_PIC.d = !VCM2;
-			WR_COL.d = VCM2;
 			VLA[].d = G_ADDRESS[];
 			V_CST[].d = (VCC,GND);
 			V_WE.d = VCC;
@@ -449,14 +444,12 @@ IF MODE == "SPRINTER" GENERATE
 			V_WEX.d = GND;
 			V_WET[].d = MXWE or !((!VXA1 & !VXA0),(!VXA1 & VXA0),(VXA1 & !VXA0),(VXA1 & VXA0));
 		WHEN 3 => -- CT=4: hold the REGISTERED descriptor request
-			WR_PIC.d = MODE0[5];
 			VLA[].d = (G_REQUEST[],GND,GND);
 			V_CST[].d = (VCC,GND);
 			V_WE.d = VCC;
 			V_WEX.d = VCC;
 		WHEN 4 => -- CT=2: sample color, issue next descriptor
 			VLA[].d = (DIR_PORT3,G_X[8..3],VCC,VCC,VCC,G_Y[8..3],GND,GND);
-			WR_MODE.d = GND;
 			V_CST[].d = (VCC,GND);
 			V_WE.d = VCC;
 			V_WEX.d = VCC;
@@ -481,8 +474,7 @@ IF MODE == "SPRINTER" GENERATE
 
 --	=====================
 
-	-- Descriptor address is issued at CT=2 / VCM=4. Prefetch the
-	-- physical pixel following CT=6, including the original CTV edge at CTH=48.
+	-- Prefetch the next physical byte; scroll offsets fetch coordinates only.
 	IF (CTH[] == 55) & (CT[5..3] == 7) THEN
 		G_NEXT_X[] = 0;
 	ELSE
@@ -494,8 +486,8 @@ IF MODE == "SPRINTER" GENERATE
 		END IF;
 	ELSE G_NEXT_Y[] = CTV[];
 	END IF;
-	G_SUM_X[] = (GND,G_NEXT_X[]) + (B"000000",G_SCROLL[3..0]);
-	G_SUM_Y[] = (GND,G_NEXT_Y[]) + (B"000000",G_SCROLL[7..4]);
+	G_SUM_X[] = (GND,G_NEXT_X[]) + (B"000000",G_EFFECTIVE[3..0]);
+	G_SUM_Y[] = (GND,G_NEXT_Y[]) + (B"000000",G_EFFECTIVE[7..4]);
 	IF G_SUM_X[] >= 448 THEN G_X[] = G_SUM_X[8..0] - 448;
 	ELSE G_X[] = G_SUM_X[8..0]; END IF;
 	IF G_SUM_Y[] >= 320 THEN G_Y[] = G_SUM_Y[8..0] - 320;
@@ -512,19 +504,30 @@ IF MODE == "SPRINTER" GENERATE
 	-- the descriptor. Capture BEFORE VLA changes to the CPU slot.
 	-- No derived WR_MODE clock: all four bytes use the same CLK42 edge.
 	G_CAPTURE = (VCM[] == 2);
-	G_ACCEPT = G_CAPTURE & (!G_VALID or (G_REQUEST[] != G_LAST[]));
+	G_ACCEPT = G_CAPTURE & (G_REQUEST[] != G_LAST[]);
 	MODE0[].clk = CLK42; MODE0[].ena = G_CAPTURE; MODE0[] = VDM3[];
 	MODE1[].clk = CLK42; MODE1[].ena = G_CAPTURE; MODE1[] = VDM2[];
 	MODE2[].clk = CLK42; MODE2[].ena = G_CAPTURE; MODE2[] = VDM1[];
 	MODE3[].clk = CLK42; MODE3[].ena = G_CAPTURE; MODE3[] = VDM0[];
 	G_LAST[].clk = CLK42; G_LAST[].ena = G_CAPTURE; G_LAST[] = G_REQUEST[];
-	G_VALID.clk = CLK42; G_VALID.ena = G_CAPTURE; G_VALID = VCC;
-	-- ACEX registers power up low. No line/frame reset or lookback.
+	-- Every real request contains address bits 111; power-up G_LAST=0
+	-- therefore accepts the first descriptor without a separate valid bit.
+	-- RELOAD: a control affects the NEXT cell, not byte 1 of its own cell.
+	-- Save MODE3 once on entry. Apply it when the current cell's last byte
+	-- is sampled, bypassing the new value into the next address calculation.
+	G_PENDING[].clk = CLK42;
+	G_PENDING[].ena = G_ACCEPT & VDM3[2];
+	G_PENDING[] = VDM0[];
+	G_PENDING_VALID.clk = CLK42;
+	G_PENDING_VALID.ena = (G_ACCEPT & VDM3[2]) or ((VCM[] == 4) & G_APPLY);
+	G_PENDING_VALID = G_CAPTURE;
+	G_APPLY = G_PENDING_VALID & (G_LOCAL_X[] == 7);
+	IF G_APPLY THEN G_EFFECTIVE[] = G_PENDING[];
+	ELSE G_EFFECTIVE[] = G_SCROLL[]; END IF;
 	G_SCROLL[].clk = CLK42;
-	G_CONTROL.clk = CLK42; G_CONTROL.ena = G_CAPTURE;
-	G_CONTROL = G_ACCEPT & VDM3[2];
-	G_SCROLL[].ena = (VCM[] == 0) & G_CONTROL;
-	G_SCROLL[] = MODE3[]; -- CT=6, one edge after the four-byte capture
+	G_SCROLL[].ena = (VCM[] == 4) & G_APPLY;
+	G_SCROLL[] = G_PENDING[];
+	-- No line/frame reset. A new control replaces a still-pending control.
 
 	-- Unsigned byte Y wraps at 256; X addition can carry into next row.
 	G_YBASE[] = MODE2[] + (B"00000",G_LOCAL_Y[]);
@@ -551,12 +554,10 @@ IF MODE == "SPRINTER" GENERATE
 		IF G_BORDER THEN G_PALETTE[] = (VCC,B"0000",BRD[],BRD[]);
 		ELSE G_PALETTE[] = (GND,G_PAL[],G_COLOR[]); END IF;
 	END IF;
-	X_MODE_BOND = GND;
 	-- External RGB registers see ONE rising edge per byte pixel, at CT=0,
 	-- after palette CT=6. Never clock them while the descriptor is on VD.
 	TSN_W3.d = (VCM[] != 0);
 	VAO[] = VLA[17..2];
-	WR_PIC.clk = CLK42; WR_COL.clk = CLK42; WR_MODE.clk = CLK42;
 
 	V_WE_R		= DFF(GND,!CLK42,,!V_WE);
 	V_WE.prn	= V_WE_R;

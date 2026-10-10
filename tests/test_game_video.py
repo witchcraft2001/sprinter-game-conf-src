@@ -67,12 +67,17 @@ class GameVideoTests(unittest.TestCase):
         first = v.next_sample()
         self.assertEqual((first.x, first.y), (424, 312))
         self.assertEqual(first.address, 87 * 1024 + 19)
-        self.assertEqual(v.scroll, 255)
+        self.assertEqual(v.scroll, 0)
+        # Every byte of the marked cell uses the OLD grid, including its tail.
+        for local in range(1, 8):
+            s = v.next_sample()
+            self.assertEqual((s.x, s.y), (424 + local, 312))
+            self.assertEqual(s.address, 87 * 1024 + 19 + local)
+            self.assertEqual(v.scroll, 255 if local == 7 else 0)
         second = v.next_sample()
-        self.assertEqual((second.x, second.y), (440, 327 % 320))
+        self.assertEqual((second.x, second.y), (447, 7))
         self.assertEqual(v.scroll_loads, 1)
-        for _ in range(1000):
-            v.next_sample()
+        for _ in range(1000): v.next_sample()
         self.assertEqual(v.scroll, 255)
         # A zero control loads once even though it is read eight times.
         ram.load(descriptor_address(0, 8, 0), (0x24, 0, 80, 0))
@@ -80,9 +85,8 @@ class GameVideoTests(unittest.TestCase):
         v.next_sample()
         for _ in range(8): v.next_sample()
         self.assertEqual(v.scroll_loads, 1)
-        # Replacing MODE3 in the same cell is applied on the next entry only.
         ram.load(descriptor_address(0, 16, 0), (0x24, 0, 80, 0x21))
-        v.next_sample()
+        for _ in range(8): v.next_sample()
         self.assertEqual(v.scroll, 0x21)
 
     def test_unaligned_graphics_overflow_and_all_banks(self):
@@ -140,10 +144,12 @@ class GameVideoTests(unittest.TestCase):
         v.step()  # all bytes captured before CPU takes bus
         self.assertEqual(v.mode, (0x24, 2, 3, 0x9a))
         self.assertEqual(v.scroll, 0)
-        v.step()  # CT=6 loads captured MODE3
+        v.step()  # CT=6 does not apply a control inside its own cell
+        self.assertEqual(v.scroll, 0)
+        for _ in range(8): v.next_sample()
         self.assertEqual(v.scroll, 0x9a)
         v.x, v.y = 391, 319
-        v.control = False
+        v.pending = None
         for _ in range(12): v.step()
         self.assertEqual(v.y, 0)
         self.assertEqual(v.scroll, 0x9a)
