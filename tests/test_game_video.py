@@ -10,6 +10,29 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class GameVideoTests(unittest.TestCase):
+    def test_border_storage_variants_have_identical_rgb_and_controls(self):
+        for old in range(16):
+            for new in range(16):
+                ram = SRAM()
+                for col in range(56):
+                    mode = (0x24, col, 90, old) if col < 40 else (0xe4, col, 91, new)
+                    ram.load(descriptor_address(0, col*8, 0), mode)
+                buses = [SRAM(), SRAM()]
+                for bus in buses:
+                    bus.banks = ram.banks
+                    for index in (0, 0x400, 0x409, 0x412, 0x41b, 0x424, 0x42d, 0x436, 0x43f):
+                        bus.load(palette_address(index), bytes((index & 255, 31, 127, 255)))
+                variants = [Video(buses[0]), Video(buses[1], hold_border_data=True)]
+                for v in variants:
+                    v.scroll, v.x = old, 326-old
+                for cycle in range(26*6):
+                    for v in variants:
+                        v.border = cycle & 7
+                        v.step()
+                    a, b = variants
+                    self.assertEqual((a.palette, a.rgb, a.rgb_clocks, a.scroll, a.pending),
+                                     (b.palette, b.rgb, b.rgb_clocks, b.scroll, b.pending))
+
     def fixture(self):
         ram = SRAM()
         # Distinct bank and address data; palette/descriptor writes follow this fill.

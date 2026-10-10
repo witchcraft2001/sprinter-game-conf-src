@@ -51,14 +51,29 @@ try {
             assert.throws(() => build.prepare(io, root + '/altera/acex', work, variant), /already exists/);
         });
     }
-    test('target scroll stages preserve the complete bus and write pipeline', () => {
+    test('target scroll and border stages preserve bus slots and write pipeline', () => {
         const common = io.readText(root + '/altera/acex/GAME_K50/VIDEO2.TDF');
         assert.strictEqual(build.transformGameVideo(common, 'GAME_K30'), common);
         const k50 = build.transformGameVideo(common, 'GAME_K50');
         assert.ok(k50.includes('G_EFFECTIVE[7..0] : DFFE;'));
         assert.ok(!k50.includes('G_EFFECTIVE_X'));
+        assert.ok(k50.includes('G_RASTER_BLOCK.ena = G_MODE_CAPTURE;'));
+        assert.ok(k50.includes('G_RASTER_BLOCK = (CT[5..3] != 6) or (VDM3[7..5] == 7);'));
+        assert.ok(k50.includes('G_APPLY = G_PENDING_VALID & ((G_LOCAL_X[] == 7) or !G_RASTER_BLOCK);'));
+        for (const boundary of ['G_RASTER_END : DFFE;', 'G_RASTER_END = (CT[5..3] == 6);', 'or (G_RASTER_END & (MODE0[7..5] != 7)))']) {
+            assert.throws(() => build.transformGameVideo(common.replace(boundary, ''), 'GAME_K50'), /review K50/);
+        }
+        for (let mode = 1; mode <= 3; mode++) {
+            assert.ok(common.includes(`MODE${mode}[].ena = G_CAPTURE;`));
+            assert.ok(k50.includes(`MODE${mode}[].ena = G_MODE_CAPTURE;`));
+            assert.throws(() => build.transformGameVideo(common.replace(`MODE${mode}[].ena = G_CAPTURE;`, ''), 'GAME_K50'), /review K50/);
+        }
         const withoutScrollStage = t => t.replace(/G_EFFECTIVE\[7\.\.0\][\s\S]*?(?=G_LOCAL_X)/, '')
-            .replace(/G_EFFECTIVE(?:_X)?\[\]\.clk[\s\S]*?(?=G_SCROLL\[\]\.clk)/, '');
+            .replace(/G_EFFECTIVE(?:_X)?\[\]\.clk[\s\S]*?(?=G_SCROLL\[\]\.clk)/, '')
+            .replace(/MODE([123])\[\]\.ena = G_MODE_CAPTURE;/g, 'MODE$1[].ena = G_CAPTURE;')
+            .replace(/G_RASTER_(?:BLOCK|END) : DFFE;/, '')
+            .replace(/G_RASTER_(?:BLOCK|END)\.clk[\s\S]*?(?=\r?\n\r?\n)/, '')
+            .replace(/G_APPLY = G_PENDING_VALID[\s\S]*?;/, '');
         assert.strictEqual(withoutScrollStage(k50), withoutScrollStage(common));
         assert.throws(() => build.transformGameVideo(common.replace('G_EFFECTIVE_X[3..0] : DFFE;', ''), 'GAME_K50'), /review K50/);
         assert.throws(() => build.transformGameVideo(common, 'STANDARD_K50'), /Standard/);

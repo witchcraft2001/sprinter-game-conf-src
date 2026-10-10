@@ -15,8 +15,9 @@ STOCK_SOURCE = ROOT / 'altera/acex/K50/VIDEO2.TDF'
 
 class Bench:
     def __init__(self, ram, source=None):
-        self.program = ReadProgram(source or SOURCE.read_text())
-        self.video = Video(ram)
+        source = source or SOURCE.read_text()
+        self.program = ReadProgram(source)
+        self.video = Video(ram, hold_border_data='MODE1[].ena = G_MODE_CAPTURE;' in source)
         self.scroll_loads = 0
         self.bus = SRAM(ram.latency_ns, ram.address_delay_ns, ram.fpga_input_delay_ns,
                         ram.dac_setup_ns)
@@ -94,6 +95,90 @@ def fixture():
 
 
 class AhdlReadTests(unittest.TestCase):
+    def test_titd_camera_last_column_is_clipped_at_fixed_screen_edge(self):
+        from tools.game_video_model import descriptor_address
+        # lowram_object_step_d: seed 24/0/0/0F replaces column 39 when
+        # fine=0 and is ORed with its graphics otherwise; E4 is column 40.
+        # Hidden column 55 loads fine scroll. The visible viewport ends at
+        # physical byte X=319; column 39 supplies only its fine-scroll tail.
+        for page in (0, 1):
+            for camera in range(24):
+                coarse, fine = divmod(camera, 8)
+                ram = SRAM()
+                ram.load(64*1024, bytes(1 + (x % 251) for x in range(512)))
+                for col in range(56):
+                    for row in range(40):
+                        base = (col + coarse)*8
+                        mode = (0x60 | (base >> 8), base & 255, 64, 0) if col < 39 else (0xe4, 0, 0, 0)
+                        if col == 39:
+                            mode = (0x64 | (base >> 8), base & 255, 64, 15) if fine else (0x24, 0, 0, 15)
+                        if col == 55:
+                            mode = (0xf4, 0, 0, fine)
+                        ram.load(descriptor_address(page, col*8, row*8), mode)
+                b = Bench(ram)
+                b.video.page, b.video.x = page, 431
+                seen = {}
+                for _ in range(448):
+                    sample = b.pixels(1)[0]
+                    if 8 <= b.video.x < 336:
+                        seen[b.video.x] = sample.palette
+                self.assertEqual([seen[x] for x in range(8, 320)],
+                                 [256 + 1 + ((x-8+camera) % 251) for x in range(8, 320)],
+                                 (page, camera))
+                self.assertEqual([x for x in range(304, 336) if 256 <= seen[x] < 512],
+                                 list(range(304, 320)), (page, camera))
+
+    def test_border_reload_preserves_flags_and_releases_next_graphics(self):
+        from tools.game_video_model import descriptor_address
+        for page in (0, 1):
+            for control in (0xe4, 0xf4, 0xfc, 0xfd, 0xfe, 0xff):
+                ram = SRAM()
+                for col in range(56):
+                    for row in (0, 1):
+                        ram.load(descriptor_address(page, col*8, row*8), (0x60, 19, 90, 0))
+                ram.load(descriptor_address(page, 320, 8), (control, 0, 0, 0))
+                b = Bench(ram)
+                b.initial_scroll(0x8f)
+                b.video.page, b.video.x, b.video.border = page, 312, 5
+                samples = b.pixels(17)[1:]
+                # Eight original border pixels plus seven clipped pixels.
+                # The Y reload then selects graphics in row 0: do not keep
+                # the guard into that next cell, line or page.
+                expected = 0x400 if control >= 0xfc else 0x42d
+                self.assertEqual([s.palette for s in samples[:15]], [expected]*15)
+                self.assertTrue(all(s.blank == (control >= 0xfc) for s in samples[:15]))
+                self.assertTrue(all(s.irq == (control in (0xfd, 0xff)) for s in samples[:15]))
+                self.assertLess(samples[15].palette, 0x400)
+                self.assertFalse(samples[15].blank or samples[15].irq)
+                self.assertEqual(b.video.scroll, 0)
+
+    def test_right_border_does_not_replay_graphics_after_scroll_reload(self):
+        from tools.game_video_model import descriptor_address
+        # TITD lowram_object_step_d writes E4/0/0/0 to column 40;
+        # its left control can load 0F. 15 -> 0 at the right control's
+        # tail used to revisit column 39 for seven visible pixels.
+        # Sweep reload values too: only a backwards crossing of the
+        # preceding descriptor must be clipped, with no hardcoded width.
+        for page in (0, 1):
+            for old in range(16):
+                for new in range(16):
+                    ram = SRAM()
+                    for col in range(56):
+                        # Replayed graphics also carry a control: it must
+                        # neither become visible nor change scroll again.
+                        mode = (0x24, 19, 90, old) if col < 40 else (0xe4, 0, 0, new)
+                        ram.load(descriptor_address(page, col*8, 0), mode)
+                    b = Bench(ram)
+                    b.initial_scroll(old)
+                    b.video.page, b.video.border = page, 3
+                    first_border = 328 - old
+                    b.video.x = first_border - 2
+                    samples = b.pixels(26)[1:]
+                    self.assertLess(samples[0].palette, 0x400)
+                    self.assertEqual([s.palette for s in samples[1:]], [0x41b]*24,
+                                     (page, old, new))
+                    self.assertEqual(b.video.scroll, new)
+
     def test_horizontal_origin_wrap_exhaustive(self):
         program = ReadProgram(SOURCE.read_text())
         # Full reachable sum range, including power-up zero. Independent
@@ -197,7 +282,7 @@ class AhdlReadTests(unittest.TestCase):
                 self.assertTrue(all(s.descriptor == expected for s in cell))
                 self.assertEqual([s.y for s in cell], [row_y]*8)
 
-    def test_control_preserves_whole_cell_then_bypasses_next_scroll(self):
+    def test_graphics_control_closes_at_physical_boundary_then_bypasses_scroll(self):
         from tools.game_video_model import descriptor_address
         ram = fixture()
         for value in range(256):
@@ -206,18 +291,21 @@ class AhdlReadTests(unittest.TestCase):
             bench.initial_scroll(0x57)
             bench.video.x = 16  # origin -8 + old scroll 7; next grid X=16
             bench.pixels(1)
-            for x in range(8):
+            # Source cell begins at physical X=17. Its last visible byte
+            # before physical X=24 has local X=6, so reload must not wait
+            # for local X=7. This is the partial-cell case used by TITD.
+            for x in range(7):
                 sample = bench.pixels(1)[0]
                 self.assertEqual((sample.x, sample.y), (16+x, 5))
                 self.assertEqual(sample.address, 95*1024+19+x)
-                self.assertEqual(bench.video.scroll, value if x == 7 else 0x57)
+                self.assertEqual(bench.video.scroll, value if x == 6 else 0x57)
                 if x == 0:
                     # A CPU update while still inside the cell must not
                     # replace the MODE3 latched on entry.
                     ram.write(descriptor_address(0, 16, 5)+3, value ^ 255)
             self.assertEqual(bench.scroll_loads, 1)
             sample = bench.pixels(1)[0]
-            self.assertEqual((sample.x, sample.y), (17+(value & 15), value >> 4))
+            self.assertEqual((sample.x, sample.y), (16+(value & 15), value >> 4))
 
     def test_entire_raster_both_pages(self):
         bench = Bench(fixture())
