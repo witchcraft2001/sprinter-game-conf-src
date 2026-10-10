@@ -1,2 +1,5 @@
 .DS_Store
 compile.log
+altera/acex/build/
+__pycache__/
+diagnostics/build/
