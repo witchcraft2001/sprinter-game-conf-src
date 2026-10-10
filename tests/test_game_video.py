@@ -53,7 +53,7 @@ class GameVideoTests(unittest.TestCase):
                 v.next_sample()
                 for _ in range(25):
                     s = v.next_sample()
-                    self.assertEqual(s.x, (v.x + sx) % 448)
+                    self.assertEqual(s.x, (v.x - 8 + sx) % 448)
                     self.assertEqual(s.y, (v.y + sy) % 320)
                     self.assertEqual(v.scroll, sx | sy << 4)
 
@@ -62,7 +62,7 @@ class GameVideoTests(unittest.TestCase):
         # Control at invisible column 53, row 39; no automatic frame reset.
         ram.load(descriptor_address(0, 424, 312), (0x24, 19, 87, 0xff))
         v = Video(ram)
-        v.x, v.y = 423, 312
+        v.x, v.y = 431, 312
         v.next_sample()
         first = v.next_sample()
         self.assertEqual((first.x, first.y), (424, 312))
@@ -81,7 +81,7 @@ class GameVideoTests(unittest.TestCase):
         self.assertEqual(v.scroll, 255)
         # A zero control loads once even though it is read eight times.
         ram.load(descriptor_address(0, 8, 0), (0x24, 0, 80, 0))
-        v = Video(ram); v.x = 7
+        v = Video(ram); v.x = 15
         v.next_sample()
         for _ in range(8): v.next_sample()
         self.assertEqual(v.scroll_loads, 1)
@@ -102,7 +102,7 @@ class GameVideoTests(unittest.TestCase):
         for m0 in (0x24, 0x64, 0xa4, 0xe4, 0xf4, 0xfc, 0xfd, 0xfe, 0xff):
             ram = self.fixture()
             ram.load(descriptor_address(0, 8, 0), (m0, 5, 90, 0))
-            v = Video(ram); v.x = 7; v.border = 5
+            v = Video(ram); v.x = 15; v.border = 5
             v.next_sample(); s = v.next_sample()
             is_border = m0 >= 0xe0
             self.assertEqual(s.blank, m0 >= 0xfc)
@@ -136,7 +136,7 @@ class GameVideoTests(unittest.TestCase):
     def test_capture_scroll_edges_and_frame_retention(self):
         ram = self.fixture()
         ram.load(descriptor_address(0, 8, 0), (0x24, 2, 3, 0x9a))
-        v = Video(ram); v.x = 7
+        v = Video(ram); v.x = 15
         while v.phase != 2: v.step()
         v.step()  # descriptor issued
         self.assertEqual(v.scroll, 0)

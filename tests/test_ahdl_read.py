@@ -89,6 +89,23 @@ def fixture():
 
 
 class AhdlReadTests(unittest.TestCase):
+    def test_horizontal_origin_all_positions_and_scrolls(self):
+        # Execute the actual coordinate registers, with arithmetic expectations
+        # independent of Video. Include both sides of the origin and X wrap.
+        p = ReadProgram(SOURCE.read_text())
+        for scroll in range(16):
+            for physical_x in range(448):
+                p.state['G_SCROLL'] = scroll | (scroll << 4)
+                p.state['G_EFFECTIVE_X'] = scroll
+                p.set_inputs(CLK42=1, CT=(physical_x % 8)*8, CTH=physical_x//8,
+                             CTV=319, VCM=5, DIR_PORT=0, BRD=0, VXA=0,
+                             MXWE=1, VDM0=0, VDM1=0, VDM2=0, VDM3=0)
+                p.edge()  # CT=0: sum the physical advance and scroll
+                p.set_inputs(CT=(physical_x % 8)*8+1, VCM=1)
+                p.edge()  # CT=1: horizontal origin bias + raster wrap
+                self.assertEqual(p.state['G_X'], (physical_x + 1 + scroll - 8) % 448)
+                self.assertEqual(p.state['G_Y'], (319 + (physical_x == 391) + scroll) % 320)
+
     def test_pixel_pipeline_carry_at_row_and_byte_boundaries(self):
         from tools.game_video_model import descriptor_address
         ram = fixture()
@@ -97,7 +114,7 @@ class AhdlReadTests(unittest.TestCase):
                 for local_y in (0, 1, 7):
                     ram.load(descriptor_address(0, 8, 0), (0x20 | (base >> 8), base & 255, row, 0))
                     bench = Bench(ram)
-                    bench.video.x, bench.video.y = 7, local_y
+                    bench.video.x, bench.video.y = 15, local_y
                     samples = bench.pixels(9)[1:]
                     self.assertEqual([s.address for s in samples],
                                      [((((row + local_y) & 255) << 10) + base + x) & 0x3ffff
@@ -136,10 +153,11 @@ class AhdlReadTests(unittest.TestCase):
         self.assertIn('VXA[].ena  = G_WRITE_CAPTURE;', source)
         self.assertIn('DOUBLE.ena = G_WRITE_CAPTURE;', source)
 
-    def test_descriptor_layout_and_preserved_game_origin(self):
+    def test_descriptor_layout_and_one_cell_display_origin(self):
         # The stock expressions independently specify descriptor layout, NOT
         # the final RGB position (that also needs the complete stock pipeline).
-        # Preserve the pre-review game origin confirmed on the user's board.
+        # After the HOLD fix, the board shows a remaining one-cell left shift.
+        # Descriptor c must therefore be fetched in physical cell c+1.
         stock = (SOURCE.parent.parent / 'K50/VIDEO2.TDF').read_text()
         stock = re.sub(r'--[^\n]*', '', re.sub(r'%.*?%', '', stock, flags=re.S))
         slot = stock[stock.index('CASE VCM[1..0] IS'):]
@@ -156,7 +174,7 @@ class AhdlReadTests(unittest.TestCase):
                 expected = p.evaluate(Parser(addr, p.widths).expr())[0]
                 self.assertEqual(p.evaluate(Parser(strobe, p.widths).expr())[0], 0)
                 p.state['MODE0'] = 0
-                bench.video.x, bench.video.y = (col*8-1) % 448, row_y
+                bench.video.x, bench.video.y = (col*8+7) % 448, row_y
                 bench.pixels(1)  # prefetch for the next physical cell
                 cell = bench.pixels(8)
                 self.assertTrue(all(s.descriptor == expected for s in cell))
@@ -169,7 +187,7 @@ class AhdlReadTests(unittest.TestCase):
             ram.load(descriptor_address(0, 16, 5), (0x24, 19, 90, value))
             bench = Bench(ram)
             bench.initial_scroll(0x57)
-            bench.video.x = 8  # old X scroll=7; next request is grid X=16
+            bench.video.x = 16  # origin -8 + old scroll 7; next grid X=16
             bench.pixels(1)
             for x in range(8):
                 sample = bench.pixels(1)[0]
@@ -217,7 +235,7 @@ class AhdlReadTests(unittest.TestCase):
         bench.video.screen_off = True
         bench.pixels(448)
         bench.video.screen_off = False
-        bench.video.x, bench.video.y = 423, 312
+        bench.video.x, bench.video.y = 431, 312
         bench.pixels(448*2)
         self.assertEqual(bench.video.scroll, 255)
 
@@ -226,7 +244,7 @@ class AhdlReadTests(unittest.TestCase):
         ram = fixture()
         for base in (0,1,2,3,255,256,1019,1023):
             ram.load(descriptor_address(0,8,0), (0x20|(base>>8),base&255,255,0))
-            bench = Bench(ram); bench.video.x = 7
+            bench = Bench(ram); bench.video.x = 15
             bench.pixels(9)
 
     def test_mutations_in_source_are_detected(self):
@@ -236,7 +254,7 @@ class AhdlReadTests(unittest.TestCase):
                      ('G_SCROLL[].ena = (VCM[] == 4) & G_APPLY;',
                       'G_SCROLL[].ena = (VCM[] == 0) & G_APPLY;'),
                      ('TSN_W3.d = (VCM[] != 0);', 'TSN_W3.d = (VCM[1..0] != 0);'),
-                     ('G_SUM_X[] >= 448', 'G_SUM_X[] >= 447')]
+                     ('G_SUM_X[] >= 456', 'G_SUM_X[] >= 455')]
         from tools.game_video_model import descriptor_address
         for old,new in mutations:
             with self.subTest(mutation=old):
@@ -244,7 +262,7 @@ class AhdlReadTests(unittest.TestCase):
                 ram = fixture()
                 ram.load(descriptor_address(0,424,312), (0x24,1,90,0x0f))
                 bench = Bench(ram, source.replace(old,new))
-                bench.video.x, bench.video.y = 423,312
+                bench.video.x, bench.video.y = 431,312
                 with self.assertRaises(AssertionError): bench.pixels(40)
 
     def test_two_period_reads_with_separate_fpga_and_dac_budgets(self):

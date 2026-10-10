@@ -121,7 +121,8 @@ class Video:
             result = self.sample = Sample(self.fetch_x, self.fetch_y, self.request,
                                          address, bank, color, self.palette, bool(blank), bool(irq))
             # Physical CTV increments at the end of CTH=48 (not at X wrap).
-            nx = (self.x + 1) % 448
+            # Prefetch next byte with a one-cell display-origin correction.
+            nx = (self.x + 1 - 8) % 448
             if self.local_x == 7 and self.pending is not None:
                 self.scroll = self.pending
                 self.pending = None
