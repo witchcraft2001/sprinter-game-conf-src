@@ -505,9 +505,9 @@ TSN_W3.d  = X_MODE_BOND;
 	END IF;
 	G_SUM_X[] = (GND,G_NEXT_X[]) + (B"000000",G_SCROLL[3..0]);
 	G_SUM_Y[] = (GND,G_NEXT_Y[]) + (B"000000",G_SCROLL[7..4]);
-	IF G_SUM_X[] >= 448 THEN G_X[] = G_SUM_X[] - 448;
+	IF G_SUM_X[] >= 448 THEN G_X[] = G_SUM_X[8..0] - 448;
 	ELSE G_X[] = G_SUM_X[8..0]; END IF;
-	IF G_SUM_Y[] >= 320 THEN G_Y[] = G_SUM_Y[] - 320;
+	IF G_SUM_Y[] >= 320 THEN G_Y[] = G_SUM_Y[8..0] - 320;
 	ELSE G_Y[] = G_SUM_Y[8..0]; END IF;
 
 	G_REQUEST[].clk = CLK42;

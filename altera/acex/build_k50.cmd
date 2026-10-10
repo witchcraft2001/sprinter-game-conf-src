@@ -7,7 +7,7 @@ exit /b 2
 :variant_ok
 set "VARIANT=%~1"
 set "ROOT=%~dp0..\.."
-if not defined MAXPLUS2_EXE set "MAXPLUS2_EXE=C:\MAXPLUS2\MAXPLUS2.EXE"
+if not defined MAXPLUS2_EXE set "MAXPLUS2_EXE=C:\MAXPLUS2\MAXPLUS2\MAXPLUS2.EXE"
 if not exist "%MAXPLUS2_EXE%" (
   echo MAXPLUS2_EXE not found: %MAXPLUS2_EXE%
   exit /b 1
