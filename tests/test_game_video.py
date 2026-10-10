@@ -105,8 +105,6 @@ class GameVideoTests(unittest.TestCase):
             self.assertEqual(s.irq, m0 in (0xfd, 0xff))
             self.assertEqual(s.palette, 0x400 if m0 >= 0xfc else
                              0x42d if is_border else (m0 >> 6) * 256 + s.color)
-            v.step()  # palette issue at CT=2 after sample CT=1
-            self.assertEqual(v.slots[-1], (2, 'palette', palette_address(s.palette)))
             while v.phase != 0: v.step()
             self.assertEqual(v.slots[-1], (6, 'palette', palette_address(s.palette)))
 
@@ -114,19 +112,31 @@ class GameVideoTests(unittest.TestCase):
         v = Video(self.fixture()); v.cpu_write = 0x98
         for _ in range(18): v.step()
         self.assertEqual([slot for _, slot, _ in v.slots[-6:]],
-                         ['pixel', 'pixel', 'palette', 'descriptor', 'cpu', 'palette'])
+                         ['pixel', 'pixel', 'descriptor', 'descriptor', 'cpu', 'palette'])
         self.assertEqual(v.ram.banks[3][v.cpu_address >> 2], 0x98)
-        slow = Video(SRAM(latency_ns=25))
-        slow.step()
+        # A too-slow FPGA return path still fails, despite the extra cycle.
+        slow = Video(SRAM(fpga_input_delay_ns=40))
+        slow.mode = (0, 1, 40, 0)
+        slow.step(); slow.step()
         with self.assertRaisesRegex(RuntimeError, 'setup'): slow.step()
+
+    def test_same_sram_word_does_not_restart_access_time(self):
+        ram = SRAM(latency_ns=30)
+        ram.issue(0x100, 0)
+        ram.issue(0x103, 24)  # byte offset does not exist on VA pins
+        self.assertEqual(ram.issued_ns, 0)
+        ram.read_banks(48)
+        ram.issue(0x104, 49)
+        with self.assertRaisesRegex(RuntimeError, 'setup'): ram.read_banks(60)
 
     def test_capture_scroll_edges_and_frame_retention(self):
         ram = self.fixture()
         ram.load(descriptor_address(0, 8, 0), (0x24, 2, 3, 0x9a))
         v = Video(ram); v.x = 7
-        while v.phase != 4: v.step()
+        while v.phase != 2: v.step()
         v.step()  # descriptor issued
         self.assertEqual(v.scroll, 0)
+        v.step()  # CT=4 holds descriptor for a second full period
         v.step()  # all bytes captured before CPU takes bus
         self.assertEqual(v.mode, (0x24, 2, 3, 0x9a))
         self.assertEqual(v.scroll, 0)
@@ -152,8 +162,15 @@ class GameVideoTests(unittest.TestCase):
         for start, end in (('--\t=== Sinc-counts', '--\t==== Video'),
                            ('\tV_WE_R\t\t= DFF', 'END GENERATE;\t-- end')):
             self.assertEqual(old[old.index(start):old.index(end)], new[new.index(start):new.index(end)])
+        def cpu_slot(source):
+            source = re.sub(r'--[^\n]*', '', source)
+            start = source.index('CASE VCM[')
+            start = source.index('WHEN 2 =>', start)
+            end = source.index('WHEN 3 =>', start)
+            return re.sub(r'\s', '', source[start:end])
+        self.assertEqual(cpu_slot(old), cpu_slot(new))
         self.assertIn('G_CAPTURE = (VCM[] == 2);', new)
-        self.assertIn('G_SAMPLE = (VCM[] == 1);', new)
+        self.assertIn('G_SAMPLE = (VCM[] == 4);', new)
         for i in range(4):
             self.assertIn(f'MODE{i}[] = VDM{3-i}[];', new)
         # CT5 is physical CT[5], a derived clock; preserve the original IRQ

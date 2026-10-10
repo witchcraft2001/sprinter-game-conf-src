@@ -2,7 +2,7 @@
 import unittest
 from pathlib import Path
 from tools.ahdl_read_sim import ReadProgram
-from tools.game_video_model import SRAM, Video, VCM
+from tools.game_video_model import SRAM, Video, VCM, PERIOD_NS, palette_address
 
 SOURCE = Path(__file__).resolve().parents[1] / 'altera/acex/GAME_K50/VIDEO2.TDF'
 
@@ -12,20 +12,40 @@ class Bench:
         self.program = ReadProgram(source or SOURCE.read_text())
         self.video = Video(ram)
         self.scroll_loads = 0
+        self.bus = SRAM(ram.latency_ns, ram.address_delay_ns, ram.fpga_input_delay_ns,
+                        ram.dac_setup_ns)
+        self.bus.banks = ram.banks
+        self.rgb_clocks = 0
+        self.rgb = None
 
     def step(self):
         p, v = self.program, self.video
         # Actual TDF VLA determines the four asynchronous SRAM outputs. CPU
         # write circuitry/counters are checked separately against standard K50.
-        banks = [bank[p.state['VLA'] >> 2] for bank in v.ram.banks]
+        banks = [bank[self.bus.address] for bank in self.bus.banks]
         phase = v.phase
         p.set_inputs(CLK42=1, CT=(v.x % 8)*8 + phase, CTH=v.x//8, CTV=v.y,
                      VCM=VCM[phase], DIR_PORT=(v.page<<3)|(int(v.screen_off)<<4)|(v.border<<5),
                      BRD=v.border, VXA=v.cpu_address, MXWE=1,
                      **dict(zip(('VDM0','VDM1','VDM2','VDM3'), banks)))
         if p.get('G_SCROLL.ena'): self.scroll_loads += 1
+        # Setup checks follow enables/strobe from the actual TDF, not the
+        # reference model's phase schedule. Too-early capture must fail even
+        # when zero-delay bank values happen to be logically correct.
+        if p.get('G_CAPTURE') or p.get('G_SAMPLE'):
+            self.bus.read_banks(v.now)
+        strobe_before = p.state['TSN_W3']
         p.edge()
+        if not strobe_before and p.state['TSN_W3']:
+            self.rgb = self.bus.read_banks(v.now, receiver='dac')[1:]
+            self.rgb_clocks += 1
+            if phase != 0: raise AssertionError('RGB clock outside palette slot')
+            if v.sample is not None and self.bus.address != palette_address(v.palette) >> 2:
+                raise AssertionError('RGB clock on non-palette SRAM address')
+        self.bus.issue(p.state['VLA'], v.now)
         sample = v.step()
+        if (self.rgb_clocks, self.rgb) != (v.rgb_clocks, v.rgb):
+            raise AssertionError('External RGB clock/data mismatch')
         actual = p.state['VLA']
         expected = v.slots[-1][2]
         if actual != expected:
@@ -106,6 +126,7 @@ class AhdlReadTests(unittest.TestCase):
                      ('WHEN 1 => G_INDEX[] = VDM2[];', 'WHEN 1 => G_INDEX[] = VDM0[];'),
                      ('G_SCROLL[].ena = (VCM[] == 0) & G_CONTROL;',
                       'G_SCROLL[].ena = (VCM[] == 2) & G_CONTROL;'),
+                     ('TSN_W3.d = (VCM[] != 0);', 'TSN_W3.d = (VCM[1..0] != 0);'),
                      ('G_SUM_X[] >= 448', 'G_SUM_X[] >= 447')]
         from tools.game_video_model import descriptor_address
         for old,new in mutations:
@@ -116,6 +137,57 @@ class AhdlReadTests(unittest.TestCase):
                 bench = Bench(ram, source.replace(old,new))
                 bench.video.x, bench.video.y = 423,312
                 with self.assertRaises(AssertionError): bench.pixels(40)
+
+    def test_two_period_reads_with_separate_fpga_and_dac_budgets(self):
+        ram = fixture()
+        # 6 + 15 + 9 = 30 ns for the FPGA round trip, > one 23.81 ns
+        # period; 6 + 15 + 2 = 23 ns for the external RGB latch. Illustrative
+        # budgets, not a timing specification for the user's fitted board.
+        ram.address_delay_ns, ram.fpga_input_delay_ns, ram.dac_setup_ns = 6, 9, 2
+        bench = Bench(ram)
+        bench.pixels(900)
+        source = SOURCE.read_text()
+        # Old color capture at CT=1 must fail on the ACTUAL source bench.
+        early = source.replace('G_SAMPLE = (VCM[] == 4);', 'G_SAMPLE = (VCM[] == 1);')
+        with self.assertRaisesRegex(RuntimeError, 'setup'):
+            Bench(ram, early).pixels(3)
+        # Likewise reject moving the descriptor capture one edge earlier.
+        early = source.replace('G_CAPTURE = (VCM[] == 2);', 'G_CAPTURE = (VCM[] == 3);')
+        with self.assertRaisesRegex(RuntimeError, 'setup'):
+            Bench(ram, early).pixels(3)
+
+    def test_descriptor_hold_ignores_mid_request_page_change(self):
+        bench = Bench(fixture())
+        while bench.video.phase != 4: bench.step()  # CT=2 already issued page 0
+        request = bench.program.state['VLA']
+        bench.video.page = 1
+        bench.step()  # CT=4 must hold the saved address for a second period
+        self.assertEqual(bench.program.state['VLA'], request)
+        bench.step()  # CT=5 captures page 0, not a mixture of two requests
+        self.assertEqual(bench.program.state['G_LAST'], request >> 2)
+        bench.pixels(3)
+        self.assertEqual(bench.program.state['G_REQUEST'] >> 15, 1)
+
+    def test_palette_strobe_cadence_and_rgb_data(self):
+        ram = fixture()
+        bench = Bench(ram)
+        bench.pixels(1)  # discard startup data
+        for _ in range(80):
+            sample = bench.pixels(1)[0]
+            word = palette_address(sample.palette) >> 2
+            expected = tuple(ram.banks[b][word] for b in (1, 2, 3))
+            old_count = bench.rgb_clocks
+            while bench.video.phase != 0: bench.step()
+            self.assertEqual(bench.rgb_clocks, old_count)
+            bench.step()
+            self.assertEqual(bench.rgb_clocks, old_count + 1)
+            self.assertEqual(bench.rgb, expected)
+
+    def test_dac_setup_remains_a_separate_one_period_constraint(self):
+        ram = fixture()
+        ram.dac_setup_ns = PERIOD_NS  # total exceeds palette's one period
+        with self.assertRaisesRegex(RuntimeError, 'setup'):
+            Bench(ram).pixels(3)
 
 
 if __name__ == '__main__': unittest.main()

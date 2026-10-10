@@ -109,12 +109,16 @@ class ReadProgram:
         self.registers = set()
         for name, high, kind in re.findall(r'\b(\w+)(?:\[(\d+)\.\.0\])?\s*:\s*(NODE|DFFE|DFF)\s*;', decl):
             self.widths[name] = int(high)+1 if high else 1
-            if name.startswith('G_') or name.startswith('MODE') or name == 'VLA':
+            if name.startswith('G_') or name.startswith('MODE') or name in ('VLA', 'TSN_W3'):
                 if kind in ('DFF','DFFE'): self.registers.add(name)
         read = clean[clean.index('IF (CTH[] == 55)'):clean.index('\n\tV_WE_R\t\t= DFF')]
-        # Clock assignments for VLA occur in the shared preamble.
-        read += '\n VLA[].clk = CLK42;\n'
-        start = clean.index('CASE VCM[1..0] IS')
+        # Clock assignments for the address and external RGB strobe occur
+        # in the shared preamble, outside the interpreted read region.
+        for name in ('VLA', 'TSN_W3'):
+            clock = re.search(r'\b' + name + r'(?:\[\])?\.clk\s*=\s*[^;]+;', clean)
+            if clock is None: raise ValueError('Missing clock for ' + name)
+            read += '\n' + clock[0]
+        start = clean.index('CASE VCM[] IS')
         end = clean.index('END CASE;', start) + len('END CASE;')
         parser = Parser(read + '\n' + clean[start:end], self.widths)
         parser.block()

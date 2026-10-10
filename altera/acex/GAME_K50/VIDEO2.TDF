@@ -427,48 +427,39 @@ IF MODE == "SPRINTER" GENERATE
 		WHEN B"101" => VCM[2..0].d = 0; -- 101 -> 000  5 -> 0
 	END CASE;
 
-	CASE VCM[1..0] IS
-		WHEN 0 =>
-			VLA[].d	= (G_PALETTE[7..0],VCC,VCC,VCC,VCC,VCC,G_PALETTE[10..8],GND,GND);
+	-- Six CLK42 slots per byte pixel. Give BOTH asynchronous FPGA reads
+	-- two full periods; keep the CPU/write slot at CT=5 / VCM=2.
+	CASE VCM[] IS
+		WHEN 0 => -- CT=6: palette for the sampled pixel
+			VLA[].d = (G_PALETTE[7..0],VCC,VCC,VCC,VCC,VCC,G_PALETTE[10..8],GND,GND);
 			V_CST[].d = (VCC,GND);
-			V_WE.d		= VCC;
-			V_WEX.d		= VCC;
-
-TSN_W3.d  = X_MODE_BOND;
-%
-			IF VCM2 THEN
---				TSN_W3.d  = X_MODE5;
-				TSN_W3.d  = X_MODE_BOND;
---				V_CST[].d = (VCC,X_MODE5);
-			ELSE
-				TSN_W3.d  = X_MODE_BOND;
---				V_CST[].d = (VCC,X_MODE_BOND);
-			END IF;
-%
-
-		WHEN 1 =>
-			WR_PIC.d	= !VCM2;
-			WR_COL.d	= VCM2;
-			VLA[].d		= G_ADDRESS[];
+			V_WE.d = VCC;
+			V_WEX.d = VCC;
+		WHEN 1,5 => -- CT=0,1: issue/hold the same pixel address
+			WR_PIC.d = !VCM2;
+			WR_COL.d = VCM2;
+			VLA[].d = G_ADDRESS[];
 			V_CST[].d = (VCC,GND);
-			V_WE.d		= VCC;
-			V_WEX.d		= VCC;
-		WHEN 2 =>
-			VLA[].d		= VXA[17..0];
-			V_CST[].d 	= (!VXA18,VXA18) or MXWE;
-			V_WE.d		= MXWE;
-			V_WEX.d		= GND;
-			V_WET[].d	= MXWE or !((!VXA1 & !VXA0),(!VXA1 & VXA0),(VXA1 & !VXA0),(VXA1 & VXA0));
-		WHEN 3 =>
---			WR_PIC.d	= X_MODE5;
---			NEW 26.08.2022, fix bug with first column
---			it was reproducing when changes mode 320 -> 640, like any 320px screen squares -> text mode squares
-			WR_PIC.d	= MODE0[5];
-			VLA[].d		= (DIR_PORT3,G_X[8..3],VCC,VCC,VCC,G_Y[8..3],GND,GND);
-			WR_MODE.d	= GND; -- one descriptor read per byte pixel
-			V_CST[].d 	= (VCC,GND);
-			V_WE.d		= VCC;
-			V_WEX.d		= VCC;
+			V_WE.d = VCC;
+			V_WEX.d = VCC;
+		WHEN 2 => -- CT=5: unchanged CPU/accelerator window
+			VLA[].d = VXA[17..0];
+			V_CST[].d = (!VXA18,VXA18) or MXWE;
+			V_WE.d = MXWE;
+			V_WEX.d = GND;
+			V_WET[].d = MXWE or !((!VXA1 & !VXA0),(!VXA1 & VXA0),(VXA1 & !VXA0),(VXA1 & VXA0));
+		WHEN 3 => -- CT=4: hold the REGISTERED descriptor request
+			WR_PIC.d = MODE0[5];
+			VLA[].d = (G_REQUEST[],GND,GND);
+			V_CST[].d = (VCC,GND);
+			V_WE.d = VCC;
+			V_WEX.d = VCC;
+		WHEN 4 => -- CT=2: sample color, issue next descriptor
+			VLA[].d = (DIR_PORT3,G_X[8..3],VCC,VCC,VCC,G_Y[8..3],GND,GND);
+			WR_MODE.d = GND;
+			V_CST[].d = (VCC,GND);
+			V_WE.d = VCC;
+			V_WEX.d = VCC;
 	END CASE;
 
 --	choose V-RAM komplect
@@ -490,7 +481,7 @@ TSN_W3.d  = X_MODE_BOND;
 
 --	=====================
 
-	-- Descriptor address is issued at CT=4 / VCM=3. Prefetch the
+	-- Descriptor address is issued at CT=2 / VCM=4. Prefetch the
 	-- physical pixel following CT=6, including the original CTV edge at CTH=48.
 	IF (CTH[] == 55) & (CT[5..3] == 7) THEN
 		G_NEXT_X[] = 0;
@@ -511,13 +502,13 @@ TSN_W3.d  = X_MODE_BOND;
 	ELSE G_Y[] = G_SUM_Y[8..0]; END IF;
 
 	G_REQUEST[].clk = CLK42;
-	G_REQUEST[].ena = (VCM[] == 3);
+	G_REQUEST[].ena = (VCM[] == 4);
 	G_REQUEST[] = (DIR_PORT3,G_X[8..3],VCC,VCC,VCC,G_Y[8..3]);
 	G_LOCAL_X[].clk = CLK42; G_LOCAL_Y[].clk = CLK42;
-	G_LOCAL_X[].ena = (VCM[] == 3); G_LOCAL_Y[].ena = (VCM[] == 3);
+	G_LOCAL_X[].ena = (VCM[] == 4); G_LOCAL_Y[].ena = (VCM[] == 4);
 	G_LOCAL_X[] = G_X[2..0]; G_LOCAL_Y[] = G_Y[2..0];
 
-	-- At CT=5 SRAM has had one complete CLK42 period to return
+	-- At CT=5 SRAM has had two complete CLK42 periods to return
 	-- the descriptor. Capture BEFORE VLA changes to the CPU slot.
 	-- No derived WR_MODE clock: all four bytes use the same CLK42 edge.
 	G_CAPTURE = (VCM[] == 2);
@@ -538,9 +529,9 @@ TSN_W3.d  = X_MODE_BOND;
 	-- Unsigned byte Y wraps at 256; X addition can carry into next row.
 	G_YBASE[] = MODE2[] + (B"00000",G_LOCAL_Y[]);
 	G_ADDRESS[] = (G_YBASE[],MODE0[1..0],MODE1[]) + (B"000000000000000",G_LOCAL_X[]);
-	-- Both existing pixel slots read the same byte. Sample after the
-	-- first slot, CT=1 / VCM=1, before the second identical read.
-	G_SAMPLE = (VCM[] == 1);
+	-- CT=0 and CT=1 hold the same physical SRAM word. Capture at CT=2,
+	-- BEFORE issuing the next descriptor and replacing G_LOCAL_X/Y.
+	G_SAMPLE = (VCM[] == 4);
 	CASE G_ADDRESS[1..0] IS
 		WHEN 0 => G_INDEX[] = VDM3[];
 		WHEN 1 => G_INDEX[] = VDM2[];
@@ -561,6 +552,9 @@ TSN_W3.d  = X_MODE_BOND;
 		ELSE G_PALETTE[] = (GND,G_PAL[],G_COLOR[]); END IF;
 	END IF;
 	X_MODE_BOND = GND;
+	-- External RGB registers see ONE rising edge per byte pixel, at CT=0,
+	-- after palette CT=6. Never clock them while the descriptor is on VD.
+	TSN_W3.d = (VCM[] != 0);
 	VAO[] = VLA[17..2];
 	WR_PIC.clk = CLK42; WR_COL.clk = CLK42; WR_MODE.clk = CLK42;
 
