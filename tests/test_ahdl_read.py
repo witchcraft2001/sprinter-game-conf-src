@@ -1,7 +1,8 @@
 """Source-linked read pipeline checks; not a fitter or gate-level simulation."""
 import unittest
+import re
 from pathlib import Path
-from tools.ahdl_read_sim import ReadProgram
+from tools.ahdl_read_sim import ReadProgram, Parser
 from tools.game_video_model import SRAM, Video, VCM, PERIOD_NS, palette_address
 
 SOURCE = Path(__file__).resolve().parents[1] / 'altera/acex/GAME_K50/VIDEO2.TDF'
@@ -55,6 +56,10 @@ class Bench:
             raise AssertionError('Descriptor bank/capture mismatch')
         if p.state['G_SCROLL'] != v.scroll: raise AssertionError('Scroll phase/value mismatch')
         if self.scroll_loads != v.scroll_loads: raise AssertionError('Repeated control update')
+        if bool(p.state['G_PENDING_VALID']) != (v.pending is not None):
+            raise AssertionError('Pending control lifetime')
+        if v.pending is not None and p.state['G_PENDING'] != v.pending:
+            raise AssertionError('Pending MODE3 value')
         if sample:
             actual = tuple(p.state[n] for n in ('G_COLOR','G_BLANK','G_IRQ')) + (p.get('G_PALETTE'),)
             expected = (sample.color, int(sample.blank), int(sample.irq), sample.palette)
@@ -75,6 +80,54 @@ def fixture():
 
 
 class AhdlReadTests(unittest.TestCase):
+    def test_descriptor_layout_and_preserved_game_origin(self):
+        # The stock expressions independently specify descriptor layout, NOT
+        # the final RGB position (that also needs the complete stock pipeline).
+        # Preserve the pre-review game origin confirmed on the user's board.
+        stock = (SOURCE.parent.parent / 'K50/VIDEO2.TDF').read_text()
+        stock = re.sub(r'--[^\n]*', '', re.sub(r'%.*?%', '', stock, flags=re.S))
+        slot = stock[stock.index('CASE VCM[1..0] IS'):]
+        slot = slot[slot.index('WHEN 3 =>'):slot.index('END CASE;')]
+        addr = re.search(r'VLA\[\]\.d\s*=\s*([^;]+)', slot)[1]
+        strobe = re.search(r'WR_MODE\.d\s*=\s*([^;]+)', slot)[1]
+        ram = fixture()
+        for row_y in (0, 7, 8, 255, 319):
+            for col in (0, 1, 38, 39, 55):
+                bench = Bench(ram)
+                p = bench.program
+                p.state['MODE0'] = 0x20  # stock 320-pixel byte graphics
+                p.set_inputs(CT=7*8+4, CTH=col, CTV=row_y, DIR_PORT=0)
+                expected = p.evaluate(Parser(addr, p.widths).expr())[0]
+                self.assertEqual(p.evaluate(Parser(strobe, p.widths).expr())[0], 0)
+                p.state['MODE0'] = 0
+                bench.video.x, bench.video.y = (col*8-1) % 448, row_y
+                bench.pixels(1)  # prefetch for the next physical cell
+                cell = bench.pixels(8)
+                self.assertTrue(all(s.descriptor == expected for s in cell))
+                self.assertEqual([s.y for s in cell], [row_y]*8)
+
+    def test_control_preserves_whole_cell_then_bypasses_next_scroll(self):
+        from tools.game_video_model import descriptor_address
+        ram = fixture()
+        for value in range(256):
+            ram.load(descriptor_address(0, 16, 5), (0x24, 19, 90, value))
+            bench = Bench(ram)
+            bench.video.scroll = bench.program.state['G_SCROLL'] = 0x57
+            bench.video.x = 8  # old X scroll=7; next request is grid X=16
+            bench.pixels(1)
+            for x in range(8):
+                sample = bench.pixels(1)[0]
+                self.assertEqual((sample.x, sample.y), (16+x, 5))
+                self.assertEqual(sample.address, 95*1024+19+x)
+                self.assertEqual(bench.video.scroll, value if x == 7 else 0x57)
+                if x == 0:
+                    # A CPU update while still inside the cell must not
+                    # replace the MODE3 latched on entry.
+                    ram.write(descriptor_address(0, 16, 5)+3, value ^ 255)
+            self.assertEqual(bench.scroll_loads, 1)
+            sample = bench.pixels(1)[0]
+            self.assertEqual((sample.x, sample.y), (17+(value & 15), value >> 4))
+
     def test_entire_raster_both_pages(self):
         bench = Bench(fixture())
         bench.pixels(1)
@@ -124,8 +177,8 @@ class AhdlReadTests(unittest.TestCase):
         source = SOURCE.read_text()
         mutations = [('MODE3[] = VDM0[];', 'MODE3[] = VDM1[];'),
                      ('WHEN 1 => G_INDEX[] = VDM2[];', 'WHEN 1 => G_INDEX[] = VDM0[];'),
-                     ('G_SCROLL[].ena = (VCM[] == 0) & G_CONTROL;',
-                      'G_SCROLL[].ena = (VCM[] == 2) & G_CONTROL;'),
+                     ('G_SCROLL[].ena = (VCM[] == 4) & G_APPLY;',
+                      'G_SCROLL[].ena = (VCM[] == 0) & G_APPLY;'),
                      ('TSN_W3.d = (VCM[] != 0);', 'TSN_W3.d = (VCM[1..0] != 0);'),
                      ('G_SUM_X[] >= 448', 'G_SUM_X[] >= 447')]
         from tools.game_video_model import descriptor_address

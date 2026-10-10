@@ -181,6 +181,19 @@ check_prefix:
         LD C,0F3h
         RST 08h                 ; AcexSetUpNow; requires compatible BIOS
         JP C,error
+        ; Match BIOS Setup screen positioning after FPGA registers reset.
+        ; BIOS CMOS_RD takes a raw address: ScreenPosition=1Fh, 00h=seconds.
+        ; See BIOS SP2000.inc / FUNC_CMOS.ASM / Setup XY_SCREEN.
+        LD D,01Fh
+        LD C,0F6h
+        RST 08h
+        JR C,hold_ready         ; retain reset position if CMOS is unavailable
+        LD B,A
+        LD A,0CBh
+        LD C,0F8h
+        RST 08h
+        JP C,error
+hold_ready:
         DI
         LD A,4
         OUT (03Ch),A            ; fast RAM off

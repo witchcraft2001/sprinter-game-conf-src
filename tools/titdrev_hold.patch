@@ -1,0 +1,11 @@
+--- a/runtime/patches/reverse_branch.asm
++++ b/runtime/patches/reverse_branch.asm
+@@ -171,7 +171,7 @@
+         CALL    runtime_reverse_debug_mark
+         ENDIF
+ 
+-        LD      D,0
++        LD      D,01Fh             ; CMOS ScreenPosition; 00h is RTC seconds
+         LD      C,Bios.Cmos_Rd
+         RST     Bios.Rst
+         JP      C,runtime_continue_after_hold_setup

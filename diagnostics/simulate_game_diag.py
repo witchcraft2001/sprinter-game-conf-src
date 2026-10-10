@@ -17,7 +17,8 @@ IMAGE = (HERE / 'build/GAMEDIAG.EXE').read_bytes()
 
 
 class Run:
-    def __init__(self, size=12345, short_read=False, bios_error=False, version=(0x146, 998), bad_header=False, zero_run=1):
+    def __init__(self, size=12345, short_read=False, bios_error=False, version=(0x146, 998), bad_header=False, zero_run=1,
+                 screen_position=0x77, cmos_error=False, ports_error=False):
         self.m = z80.Z80Machine()
         self.m.set_memory_block(0x8100, IMAGE[512:])
         self.m.pc, self.m.sp = 0x8100, 0xbfff
@@ -29,6 +30,12 @@ class Run:
         self.pages = {}
         self.allocated = []
         self.setup = False
+        self.screen_position, self.cmos_error, self.ports_error = screen_position, cmos_error, ports_error
+        # Raw CMOS addresses, as in BIOS FUNC_CMOS.ASM / SP2000.inc.
+        # Keep seconds different from ScreenPosition to detect a D=0 mistake.
+        self.cmos = bytearray(128)
+        self.cmos[0], self.cmos[0x1f] = 0x59, screen_position
+        self.hold = None
         self.y = self.display = 0
         self.vram = bytearray(262144)
         self.outputs = []
@@ -123,6 +130,14 @@ class Run:
             assert len(self.allocated) == (len(self.file)+16383)//16384
             self.setup = not self.bios_error
             if self.bios_error: self.m.f |= 1
+        elif self.m.c == 0xf6:
+            assert self.setup and self.m.d < len(self.cmos)
+            self.m.a = self.cmos[self.m.d]
+            if self.cmos_error: self.m.f |= 1
+        elif self.m.c == 0xf8:
+            assert self.setup and self.m.a == 0xcb and self.m.b == self.screen_position
+            if self.ports_error: self.m.f |= 1
+            else: self.hold = self.m.b
         else: raise AssertionError('Unexpected BIOS call %02x' % self.m.c)
 
     def run(self, press=None):
@@ -187,6 +202,16 @@ def main():
         run = Run(zero_run=zero_run)
         assert run.run() == 'poll' and run.setup
         checks += 1
+    for position in (0x77, 0x95, 0xb2):
+        run = Run(screen_position=position)
+        assert run.run() == 'poll' and run.hold == position
+        checks += 1
+    run = Run(cmos_error=True)
+    assert run.run() == 'poll' and run.hold is None
+    checks += 1
+    run = Run(ports_error=True)
+    assert run.run() == 'exit' and run.setup and run.hold is None
+    checks += 1
     for kwargs in ({'size':0}, {'size':6}, {'zero_run':0}, {'size':65537}, {'short_read':True}, {'bios_error':True},
                    {'version':(0x146,997)}, {'bad_header':True}):
         run = Run(**kwargs)

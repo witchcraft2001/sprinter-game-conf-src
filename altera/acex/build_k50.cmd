@@ -7,7 +7,10 @@ exit /b 2
 :variant_ok
 set "VARIANT=%~1"
 set "ROOT=%~dp0..\.."
-if not defined MAXPLUS2_EXE set "MAXPLUS2_EXE=C:\MAXPLUS2\MAXPLUS2\MAXPLUS2.EXE"
+if defined MAXPLUS2_EXE goto compiler_selected
+set "MAXPLUS2_EXE=C:\MAXPLUS2\MAXPLUS2\MAXPLUS2.EXE"
+if not exist "%MAXPLUS2_EXE%" set "MAXPLUS2_EXE=C:\MAXPLUS2\MAXPLUS2.EXE"
+:compiler_selected
 if not exist "%MAXPLUS2_EXE%" (
   echo MAXPLUS2_EXE not found: %MAXPLUS2_EXE%
   exit /b 1
@@ -31,6 +34,10 @@ if errorlevel 1 goto failed
 if errorlevel 1 goto failed
 cscript.exe //nologo "%ROOT%\tools\k50_build.js" Verify "%WORK%" "%VARIANT%" >> compile.log 2>&1
 if errorlevel 1 goto failed
+if /i "%~2"=="EXPORT_STREAM" (
+  cscript.exe //nologo "%ROOT%\tools\k50_build.js" PublishStandard "%WORK%" "%VARIANT%" >> compile.log 2>&1
+  if errorlevel 1 goto failed
+)
 certutil -hashfile K50.ACX SHA256 > acx-sha256.txt 2>&1
 echo Packaging passed: %WORK%\K50.ACX
 echo Review fitting and CLK42/derived clock timing in SP2_ACEX.rpt before board testing.
