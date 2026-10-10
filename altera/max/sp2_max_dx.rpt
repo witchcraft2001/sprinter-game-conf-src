@@ -1,0 +1,1568 @@
+Project Information     c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+
+MAX+plus II Compiler Report File
+Version 10.0 9/14/2000
+Compiled: 11/30/2025 14:29:25
+
+Copyright (C) 1988-2000 Altera Corporation
+Any megafunction design, and related net list (encrypted or decrypted),
+support information, device programming or simulation file, and any other
+associated documentation or information provided by Altera or a partner
+under Altera's Megafunction Partnership Program may be used only to
+program PLD devices (but not masked PLD devices) from Altera.  Any other
+use of such megafunction design, net list, support information, device
+programming or simulation file, or any other related documentation or
+information is prohibited for any other purpose, including, but not
+limited to modification, reverse engineering, de-compiling, or use with
+any other silicon devices, unless such use is explicitly licensed under
+a separate agreement with Altera or a megafunction partner.  Title to
+the intellectual property, including patents, copyrights, trademarks,
+trade secrets, or maskworks, embodied in any such megafunction design,
+net list, support information, device programming or simulation file, or
+any other related documentation or information provided by Altera or a
+megafunction partner, remains with Altera, the megafunction partner, or
+their respective licensors.  No other licenses, including any licenses
+needed under any third party's intellectual property, are provided herein.
+
+
+
+***** Project compilation was successful
+
+
+SINC_controller
+
+
+** DEVICE SUMMARY **
+
+Chip/                     Input   Output   Bidir         Shareable
+POF       Device          Pins    Pins     Pins     LCs  Expanders  % Utilized
+
+SP2_MAX_DX
+      EPM7128STC100-10     48       28       4      62      39          48 %
+
+User Pins:                 48       28       4  
+
+
+
+Project Information     c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+
+** PROJECT COMPILATION MESSAGES **
+
+Warning: Line 105, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED61" was declared but never used
+Warning: Line 110, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED78" was declared but never used
+Warning: Line 89, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED33" was declared but never used
+Warning: Line 111, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED84" was declared but never used
+Warning: Line 112, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED85" was declared but never used
+Warning: Line 93, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED7" was declared but never used
+Warning: Line 83, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "XHR_RDY" was declared but never used
+Warning: Line 107, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED70" was declared but never used
+Warning: Line 95, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED21" was declared but never used
+Warning: Line 104, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED55" was declared but never used
+Warning: Line 92, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED5" was declared but never used
+Warning: Line 96, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED22" was declared but never used
+Warning: Line 91, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED2" was declared but never used
+Warning: Line 101, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED49" was declared but never used
+Warning: Line 108, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED72" was declared but never used
+Warning: Line 103, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED53" was declared but never used
+Warning: Line 97, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED23" was declared but never used
+Warning: Line 98, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED24" was declared but never used
+Warning: Line 106, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED69" was declared but never used
+Warning: Line 102, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED50" was declared but never used
+Warning: Line 88, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED65" was declared but never used
+Warning: Line 90, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED1" was declared but never used
+Warning: Line 109, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED77" was declared but never used
+Warning: Line 99, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED27" was declared but never used
+Warning: Line 94, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED17" was declared but never used
+Warning: Line 100, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+   Symbolic name "UNUSED28" was declared but never used
+Warning: Flipflop 'CTV8M' stuck at GND
+Warning: No Clock transition on flipflop 'CNF_OFF'
+Warning: Primitive 'DENS_X' is stuck at VCC
+Warning: Primitive 'HD_CS' is stuck at GND
+Warning: Project has user pin or logic cell assignments, but has never been compiled before. For best fitting results, let the Compiler choose the first set of assignments instead.
+Info: Reserved unused input pin 'XHR_RDY' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED65' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED33' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED1' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED2' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED5' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED7' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED17' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED21' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED22' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED23' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED24' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED27' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED28' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED49' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED50' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED53' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED55' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED61' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED69' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED70' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED72' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED77' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED78' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED84' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED85' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+
+
+** PROJECT TIMING MESSAGES **
+
+Warning: Found ripple clock -- warning messages and Report File information on tco, tsu, and fmax may be inaccurate
+Warning: Can't provide fmax of 100.00 MHz on Clock pin "RSTB". Current fmax is 43.47 MHz.
+Warning: Can't provide fmax of 100.00 MHz on Clock pin "STE". Current fmax is 43.47 MHz.
+Warning: Can't provide fmax of 100.00 MHz on Clock pin "TG42_IN". Current fmax is 27.02 MHz.
+Warning: Can't provide fmax of 100.00 MHz on Clock pin "WSTB". Current fmax is 43.47 MHz.
+
+
+Project Information     c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+
+** PIN/LOCATION/CHIP ASSIGNMENTS **
+
+                  Actual                  
+    User       Assignments                
+Assignments   (if different)     Node Name
+
+SP2_MAX_DX@35                     AUD
+SP2_MAX_DX@13                     CLK_WG
+SP2_MAX_DX@32                     CLKZZ
+SP2_MAX_DX@31                     CLK14
+SP2_MAX_DX@6                      CMOS_AS
+SP2_MAX_DX@99                     CMOS_DRD
+SP2_MAX_DX@100                    CMOS_DWR
+SP2_MAX_DX@54                     /CONF_X
+SP2_MAX_DX@96                     DENS_X
+SP2_MAX_DX@60                     D0
+SP2_MAX_DX@89                     EPM_RES
+SP2_MAX_DX@14                     FDAT
+SP2_MAX_DX@44                     FDD_C0
+SP2_MAX_DX@45                     FDD_C1
+SP2_MAX_DX@46                     FDD_C2
+SP2_MAX_DX@52                     HD_CS
+SP2_MAX_DX@47                     HDD_C0
+SP2_MAX_DX@42                     HDD_C1
+SP2_MAX_DX@41                     HDD_C2
+SP2_MAX_DX@40                     HDD_C3
+SP2_MAX_DX@48                     HD_DIR
+SP2_MAX_DX@63                     /MREQ
+SP2_MAX_DX@90                     PW_GOOD
+SP2_MAX_DX@16                     QDAT
+SP2_MAX_DX@92                     RDAT
+SP2_MAX_DX@25                     RSTB
+SP2_MAX_DX@67                     SINC
+SP2_MAX_DX@68                     SINC_H
+SP2_MAX_DX@64                     SINC_V
+SP2_MAX_DX@20                     SINC_1
+SP2_MAX_DX@19                     SINC_2
+SP2_MAX_DX@30                     SL
+SP2_MAX_DX@29                     SR
+SP2_MAX_DX@94                     STE
+SP2_MAX_DX@36                     TG42_BUF
+SP2_MAX_DX@87                     TG42_IN
+SP2_MAX_DX@12                     TR43
+SP2_MAX_DX@1                      UNUSED1
+SP2_MAX_DX@2                      UNUSED2
+SP2_MAX_DX@5                      UNUSED5
+SP2_MAX_DX@7                      UNUSED7
+SP2_MAX_DX@17                     UNUSED17
+SP2_MAX_DX@21                     UNUSED21
+SP2_MAX_DX@22                     UNUSED22
+SP2_MAX_DX@23                     UNUSED23
+SP2_MAX_DX@24                     UNUSED24
+SP2_MAX_DX@27                     UNUSED27
+SP2_MAX_DX@28                     UNUSED28
+SP2_MAX_DX@33                     UNUSED33
+SP2_MAX_DX@49                     UNUSED49
+SP2_MAX_DX@50                     UNUSED50
+SP2_MAX_DX@53                     UNUSED53
+SP2_MAX_DX@55                     UNUSED55
+SP2_MAX_DX@61                     UNUSED61
+SP2_MAX_DX@65                     UNUSED65
+SP2_MAX_DX@69                     UNUSED69
+SP2_MAX_DX@70                     UNUSED70
+SP2_MAX_DX@72                     UNUSED72
+SP2_MAX_DX@77                     UNUSED77
+SP2_MAX_DX@78                     UNUSED78
+SP2_MAX_DX@84                     UNUSED84
+SP2_MAX_DX@85                     UNUSED85
+SP2_MAX_DX@9                      WD
+SP2_MAX_DX@98                     WDAT
+SP2_MAX_DX@97                     /WG_RD
+SP2_MAX_DX@93                     /WG_WR
+SP2_MAX_DX@57                     /WR
+SP2_MAX_DX@8                      WR_PDOS
+SP2_MAX_DX@10                     WSTB
+SP2_MAX_DX@37                     XACS
+SP2_MAX_DX@76                     XHD_RD
+SP2_MAX_DX@71                     XHD_RES
+SP2_MAX_DX@75                     XHD_WR
+SP2_MAX_DX@79                     XHD1_CS1
+SP2_MAX_DX@80                     XHD1_CS2
+SP2_MAX_DX@81                     XHD2_CS1
+SP2_MAX_DX@83                     XHD2_CS2
+SP2_MAX_DX@88                     XHR_RDY
+SP2_MAX_DX@56                     10K_CLK
+SP2_MAX_DX@58                     10K_D0
+
+
+Device-Specific Information:c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+SP2_MAX_DX
+
+***** Logic for device 'SP2_MAX_DX' compiled without errors.
+
+
+
+
+Device: EPM7128STC100-10
+
+Device Options:
+    Turbo Bit                                    = ON
+    Security Bit                                 = ON
+    Enable JTAG Support                        = ON
+    User Code                                  = ffff
+    MultiVolt I/O                              = OFF
+
+
+
+Device-Specific Information:c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+SP2_MAX_DX
+
+** ERROR SUMMARY **
+
+Info: Chip 'SP2_MAX_DX' in device 'EPM7128STC100-10' has less than 20% of pins available for future logic changes -- if your project is likely to change, Altera recommends using a larger device
+              C C                           U U X   X X X U U    
+              M M                 P E X T   N N H   H H H N N    
+              O O   / D     /   V W P H G   U U D   D D D U U X  
+              S S   W E     W   C _ M R 4   S S 2 V 2 1 1 S S H  
+              _ _ W G N     G R C G _ _ 2   E E _ C _ _ _ E E D  
+              D D D _ S G S _ D I O R R _ G D D C C C C C D D _  
+              W R A R _ N T W A N O E D I N 8 8 S I S S S 7 7 R  
+              R D T D X D E R T T D S Y N D 5 4 2 O 1 2 1 8 7 D  
+            ----------------------------------------------------_ 
+           / 100  98  96  94  92  90  88  86  84  82  80  78  76   |_ 
+          /     99  97  95  93  91  89  87  85  83  81  79  77    | 
+ UNUSED1 |  1                                                    75 | XHD_WR 
+ UNUSED2 |  2                                                    74 | GND 
+   VCCIO |  3                                                    73 | #TDO 
+    #TDI |  4                                                    72 | UNUSED72 
+ UNUSED5 |  5                                                    71 | XHD_RES 
+ CMOS_AS |  6                                                    70 | UNUSED70 
+ UNUSED7 |  7                                                    69 | UNUSED69 
+ WR_PDOS |  8                                                    68 | SINC_H 
+      WD |  9                                                    67 | SINC 
+    WSTB | 10                                                    66 | VCCIO 
+     GND | 11                                                    65 | UNUSED65 
+    TR43 | 12                                                    64 | SINC_V 
+  CLK_WG | 13                 EPM7128STC100-10                   63 | /MREQ 
+    FDAT | 14                                                    62 | #TCK 
+    #TMS | 15                                                    61 | UNUSED61 
+    QDAT | 16                                                    60 | D0 
+UNUSED17 | 17                                                    59 | GND 
+   VCCIO | 18                                                    58 | 10K_D0 
+  SINC_2 | 19                                                    57 | /WR 
+  SINC_1 | 20                                                    56 | 10K_CLK 
+UNUSED21 | 21                                                    55 | UNUSED55 
+UNUSED22 | 22                                                    54 | /CONF_X 
+UNUSED23 | 23                                                    53 | UNUSED53 
+UNUSED24 | 24                                                    52 | HD_CS 
+    RSTB | 25                                                    51 | VCCIO 
+         |      27  29  31  33  35  37  39  41  43  45  47  49  _| 
+          \   26  28  30  32  34  36  38  40  42  44  46  48  50   | 
+           \----------------------------------------------------- 
+              G U U S S C C U V A T X G V H H H G F F F H H U U  
+              N N N R L L L N C U G A N C D D D N D D D D D N N  
+              D U U     K K U C D 4 C D C D D D D D D D D _ U U  
+                S S     1 Z S I   2 S   I _ _ _   _ _ _ _ D S S  
+                E E     4 Z E O   _     N C C C   C C C C I E E  
+                D D         D     B     T 3 2 1   0 1 2 0 R D D  
+                2 2         3     U                         4 5  
+                7 8         3     F                         9 0  
+
+
+N.C. = No Connect. This pin has no internal connection to the device.
+VCCINT = Dedicated power pin, which MUST be connected to VCC (5.0 volts).
+VCCIO = Dedicated power pin, which MUST be connected to VCC (5.0 volts).
+GND = Dedicated ground pin or unused dedicated input, which MUST be connected to GND.
+RESERVED = Unused I/O pin, which MUST be left unconnected.
+
+^ = Dedicated configuration pin.
++ = Reserved configuration pin, which is tri-stated during user mode.
+* = Reserved configuration pin, which drives out in user mode.
+PDn = Power Down pin. 
+@ = Special-purpose pin. 
+# = JTAG Boundary-Scan Testing/In-System Programming or Configuration Pin. The JTAG inputs TMS and TDI should be tied to VCC and TCK should be tied to GND when not in use.
+& = JTAG pin used for I/O. When used as user I/O, JTAG pins must be kept stable before and during configuration.  JTAG pin stability prevents accidental loading of JTAG instructions.
+
+
+Device-Specific Information:c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+SP2_MAX_DX
+
+** RESOURCE USAGE **
+
+                                                Shareable     External
+Logic Array Block     Logic Cells   I/O Pins    Expanders   Interconnect
+
+A:     LC1 - LC16     6/16( 37%)  10/10(100%)   2/16( 12%)  13/36( 36%) 
+B:    LC17 - LC32    14/16( 87%)  10/10(100%)  11/16( 68%)  28/36( 77%) 
+C:    LC33 - LC48    16/16(100%)  10/10(100%)   6/16( 37%)  26/36( 72%) 
+D:    LC49 - LC64     6/16( 37%)  10/10(100%)   2/16( 12%)   6/36( 16%) 
+E:    LC65 - LC80     2/16( 12%)  10/10(100%)   5/16( 31%)   7/36( 19%) 
+F:    LC81 - LC96     4/16( 25%)  10/10(100%)   3/16( 18%)  18/36( 50%) 
+G:   LC97 - LC112     8/16( 50%)  10/10(100%)   5/16( 31%)  31/36( 86%) 
+H:  LC113 - LC128     6/16( 37%)  10/10(100%)   7/16( 43%)  10/36( 27%) 
+
+
+Total dedicated input pins used:                 4/4      (100%)
+Total I/O pins used:                            80/80     (100%)
+Total logic cells used:                         62/128    ( 48%)
+Total shareable expanders used:                 39/128    ( 30%)
+Total Turbo logic cells used:                   53/128    ( 41%)
+Total shareable expanders not available (n/a):   2/128    (  1%)
+Average fan-in:                                  5.83
+Total fan-in:                                   362
+
+Total input pins required:                      48
+Total fast input logic cells required:           0
+Total output pins required:                     28
+Total bidirectional pins required:               4
+Total reserved pins required                     4
+Total logic cells required:                     62
+Total flipflops required:                       57
+Total product terms required:                  217
+Total logic cells lending parallel expanders:    0
+Total shareable expanders in database:          35
+
+Synthesized logic cells:                         0/ 128   (  0%)
+
+
+
+Device-Specific Information:c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+SP2_MAX_DX
+
+** INPUTS **
+
+                                         Shareable
+                                         Expanders     Fan-In    Fan-Out
+ Pin     LC  LAB  Primitive    Code   Total Shared n/a INP  FBK  OUT  FBK  Name
+  32     56    D      BIDIR               2      2   0    1    2    4   10  CLKZZ
+  54     85    F     OPNDRN               0      0   0    8    2    8    1  /CONF_X
+  60   (93)  (F)      INPUT               0      0   0    0    0    1    0  D0
+  89      -   -       INPUT               0      0   0    0    0    2    0  EPM_RES
+  44   (70)  (E)      INPUT               0      0   0    0    0   13    0  FDD_C0
+  45   (72)  (E)      INPUT               0      0   0    0    0   15    0  FDD_C1
+  46   (73)  (E)      INPUT               0      0   0    0    0   14    0  FDD_C2
+  47   (75)  (E)      INPUT               0      0   0    0    0   16    0  HDD_C0
+  42   (69)  (E)      INPUT               0      0   0    0    0   15    0  HDD_C1
+  41   (67)  (E)      INPUT               0      0   0    0    0   15    0  HDD_C2
+  40   (65)  (E)      INPUT               0      0   0    0    0   13    0  HDD_C3
+  63   (97)  (G)      INPUT               0      0   0    0    0    1    0  /MREQ
+  90      -   -       INPUT               0      0   0    0    0    1    0  PW_GOOD
+  92   (16)  (A)      INPUT               0      0   0    0    0    1    1  RDAT
+  25   (33)  (C)      INPUT               0      0   0    0    0    0    1  RSTB
+  20     41    C      BIDIR               0      0   0    0    8    2    0  SINC_1
+  19     43    C      BIDIR               2      1   0    0   11    2    0  SINC_2
+  30   (59)  (D)      INPUT               0      0   0    0    0    0    1  SL
+  29   (61)  (D)      INPUT               0      0   0    0    0    0    1  SR
+  94   (13)  (A)      INPUT               0      0   0    0    0    0    1  STE
+  87      -   -       INPUT               0      0   0    0    0    7    1  TG42_IN
+  12   (21)  (B)      INPUT               0      0   0    0    0    0    2  TR43
+   1    (3)  (A)      INPUT               0      0   0    0    0    0    0  UNUSED1
+   2    (1)  (A)      INPUT               0      0   0    0    0    0    0  UNUSED2
+   5   (30)  (B)      INPUT               0      0   0    0    0    0    0  UNUSED5
+   7   (27)  (B)      INPUT               0      0   0    0    0    0    0  UNUSED7
+  17   (45)  (C)      INPUT               0      0   0    0    0    0    0  UNUSED17
+  21   (40)  (C)      INPUT               0      0   0    0    0    0    0  UNUSED21
+  22   (38)  (C)      INPUT               0      0   0    0    0    0    0  UNUSED22
+  23   (37)  (C)      INPUT               0      0   0    0    0    0    0  UNUSED23
+  24   (35)  (C)      INPUT               0      0   0    0    0    0    0  UNUSED24
+  27   (64)  (D)      INPUT               0      0   0    0    0    0    0  UNUSED27
+  28   (62)  (D)      INPUT               0      0   0    0    0    0    0  UNUSED28
+  33   (54)  (D)      INPUT               0      0   0    0    0    0    0  UNUSED33
+  49   (78)  (E)      INPUT               0      0   0    0    0    0    0  UNUSED49
+  50   (80)  (E)      INPUT               0      0   0    0    0    0    0  UNUSED50
+  53   (83)  (F)      INPUT               0      0   0    0    0    0    0  UNUSED53
+  55   (86)  (F)      INPUT               0      0   0    0    0    0    0  UNUSED55
+  61   (94)  (F)      INPUT               0      0   0    0    0    0    0  UNUSED61
+  65  (101)  (G)      INPUT               0      0   0    0    0    0    0  UNUSED65
+  69  (105)  (G)      INPUT               0      0   0    0    0    0    0  UNUSED69
+  70  (107)  (G)      INPUT               0      0   0    0    0    0    0  UNUSED70
+  72  (110)  (G)      INPUT               0      0   0    0    0    0    0  UNUSED72
+  77  (117)  (H)      INPUT               0      0   0    0    0    0    0  UNUSED77
+  78  (118)  (H)      INPUT               0      0   0    0    0    0    0  UNUSED78
+  84  (126)  (H)      INPUT               0      0   0    0    0    0    0  UNUSED84
+  85  (128)  (H)      INPUT               0      0   0    0    0    0    0  UNUSED85
+   9   (24)  (B)      INPUT               0      0   0    0    0    0    2  WD
+  57   (89)  (F)      INPUT               0      0   0    0    0    1    0  /WR
+  10   (22)  (B)      INPUT               0      0   0    0    0    0    1  WSTB
+  37   (49)  (D)      INPUT               0      0   0    0    0    0    1  XACS
+  88      -   -       INPUT               0      0   0    0    0    0    0  XHR_RDY
+
+
+Code:
+
+s = Synthesized pin or logic cell
+t = Turbo logic cell
++ = Synchronous flipflop
+/ = Slow slew-rate output
+! = NOT gate push-back
+r = Fitter-inserted logic cell
+
+
+Device-Specific Information:c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+SP2_MAX_DX
+
+** OUTPUTS **
+
+                                         Shareable
+                                         Expanders     Fan-In    Fan-Out
+ Pin     LC  LAB  Primitive    Code   Total Shared n/a INP  FBK  OUT  FBK  Name
+  35     53    D         FF      t        0      0   0    0    4    3    5  AUD
+  13     19    B         FF      t        2      2   0    0    4    1    4  CLK_WG
+  32     56    D     TRI/FF      t        2      2   0    1    2    4   10  CLKZZ
+  31     57    D         FF      t        0      0   0    0    1    0    0  CLK14
+   6     29    B         FF      t !      0      0   0    7    1    0    0  CMOS_AS
+  99      6    A         FF      t        0      0   0    7    1    0    0  CMOS_DRD
+ 100      5    A         FF      t        0      0   0    7    1    0    0  CMOS_DWR
+  54     85    F  OPNDRN/FF      t        0      0   0    8    2    8    1  /CONF_X
+  96     11    A     OUTPUT      t        0      0   0    0    0    0    0  DENS_X
+  14     17    B         FF      t        8      7   0    1    4    1    4  FDAT
+  52     81    F     OUTPUT      t        0      0   0    0    0    0    0  HD_CS
+  48     77    E     OUTPUT      t        0      0   0    0    1    0    0  HD_DIR
+  16     46    C         FF      t        3      3   0    0    8    0    0  QDAT
+  67    102    G     OUTPUT      t        0      0   0    0    2    0    0  SINC
+  68    104    G         FF      t        0      0   0    0    5    4   11  SINC_H
+  64     99    G         FF      t        4      0   0    7    9    3    8  SINC_V
+  20     41    C     TRI/FF      t        0      0   0    0    8    2    0  SINC_1
+  19     43    C     TRI/FF      t        2      1   0    0   11    2    0  SINC_2
+  36     51    D     OUTPUT      t        0      0   0    1    0    0    0  TG42_BUF
+  98      8    A         FF      t        2      0   0    0    5    0    0  WDAT
+  97      9    A         FF      t        0      0   0    7    1    0    0  /WG_RD
+  93     14    A         FF      t        0      0   0    7    1    0    0  /WG_WR
+   8     25    B         FF      t        0      0   0    7    1    0    0  WR_PDOS
+  76    115    H         FF               1      1   0    4    2    1    0  XHD_RD
+  71    109    G         FF               0      0   0    2    1    1    0  XHD_RES
+  75    113    H         FF               1      1   0    4    2    0    0  XHD_WR
+  79    120    H         FF               6      6   0    8    1    0    0  XHD1_CS1
+  80    121    H         FF               6      6   0    8    1    0    0  XHD1_CS2
+  81    123    H         FF               6      6   0    8    1    0    0  XHD2_CS1
+  83    125    H         FF               6      6   0    8    1    0    0  XHD2_CS2
+  56     88    F         FF               0      0   0    5    1    9    0  10K_CLK
+  58     91    F         FF               3      0   1    8    4    3    6  10K_D0
+
+
+Code:
+
+s = Synthesized pin or logic cell
+t = Turbo logic cell
++ = Synchronous flipflop
+/ = Slow slew-rate output
+! = NOT gate push-back
+r = Fitter-inserted logic cell
+
+
+Device-Specific Information:c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+SP2_MAX_DX
+
+** BURIED LOGIC **
+
+                                         Shareable
+                                         Expanders     Fan-In    Fan-Out
+ Pin     LC  LAB  Primitive    Code   Total Shared n/a INP  FBK  OUT  FBK  Name
+ (12)    21    B       DFFE      t        0      0   0    1    1    2    0  CNF_OFF
+   -     39    C       TFFE      t        0      0   0    0    1    1    4  CTH0
+ (21)    40    C       TFFE      t        0      0   0    0    2    1    3  CTH1
+ (24)    35    C       TFFE      t        0      0   0    0    5    2    3  CTH2
+ (17)    45    C       TFFE      t        0      0   0    0    6    2    2  CTH3
+ (23)    37    C       TFFE      t        0      0   0    0    7    2    1  CTH4
+   -    106    G       DFFE      t        1      1   0    0    4    1    8  CTV0
+   -    103    G       DFFE      t        1      1   0    0    4    1    8  CTV1
+ (25)    33    C       DFFE      t        1      1   0    0    5    2    6  CTV2
+   -     34    C       TFFE      t        1      1   0    0    6    2    5  CTV3
+ (22)    38    C       TFFE      t        1      1   0    0    7    2    4  CTV4
+   -     47    C       TFFE      t        1      1   0    0    8    2    3  CTV5
+ (15)    48    C       TFFE      t        1      1   0    0    9    2    2  CTV6
+   -     44    C       TFFE      t        1      1   0    0   10    2    1  CTV7
+ (40)    65    E       TFFE      t        5      0   0    3    3    2    5  CT_WG
+   -     23    B       TFFE      t        0      0   0    0    1    3    7  CT0
+  (7)    27    B       TFFE      t        0      0   0    0    2    1    1  CT1
+ (37)    49    D       TFFE      t        0      0   0    0    3    1    0  CT2
+ (69)   105    G       DFFE      t        0      0   0    3    1    1    2  LR_T0
+ (65)   101    G       DFFE      t        0      0   0    3    1    1    2  LR_T1
+   -     26    B       DFFE      t        1      1   0    0    5    1    2  REG_P0
+ (10)    22    B       DFFE      t        1      1   0    0    5    1    2  REG_P1
+  (5)    30    B       TFFE      t        2      2   0    0    2    1    1  STWG0
+  (9)    24    B       TFFE      t        2      2   0    0    3    1    0  STWG1
+   -     42    C       TFFE      t        3      3   0    0    8    1    4  WGR0
+   -     36    C       TFFE      t        4      3   1    0    8    1    4  WGR1
+   -     28    B       TFFE      t        3      3   0    0    8    1    4  WGR2
+  (4)    32    B       TFFE      t        3      3   0    0    8    1    4  WGR3
+   -     58    D       TFFE      t        2      2   0    1    1    2    0  XCT0
+   -     20    B       DFFE      t        7      7   0    1    3    1    0  :192
+
+
+Code:
+
+s = Synthesized pin or logic cell
+t = Turbo logic cell
++ = Synchronous flipflop
+/ = Slow slew-rate output
+! = NOT gate push-back
+r = Fitter-inserted logic cell
+
+
+Device-Specific Information:c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+SP2_MAX_DX
+
+** LOGIC CELL INTERCONNECTIONS **
+
+Logic Array Block 'A':
+
+                     Logic cells placed in LAB 'A'
+        +----------- LC6 CMOS_DRD
+        | +--------- LC5 CMOS_DWR
+        | | +------- LC11 DENS_X
+        | | | +----- LC8 WDAT
+        | | | | +--- LC9 /WG_RD
+        | | | | | +- LC14 /WG_WR
+        | | | | | | 
+        | | | | | |   Other LABs fed by signals
+        | | | | | |   that feed LAB 'A'
+LC      | | | | | | | A B C D E F G H |     Logic cells that feed LAB 'A':
+
+Pin
+89   -> - - - - - - | - - - - - * * - | <-- EPM_RES
+44   -> * * - - * * | * * - - - * * * | <-- FDD_C0
+45   -> * * - - * * | * * - - - * * * | <-- FDD_C1
+46   -> * * - - * * | * * - - - * * * | <-- FDD_C2
+47   -> * * - - * * | * * - - - * * * | <-- HDD_C0
+42   -> * * - - * * | * * - - - * * * | <-- HDD_C1
+41   -> * * - - * * | * * - - - * * * | <-- HDD_C2
+40   -> * * - - * * | * * - - - * * * | <-- HDD_C3
+90   -> - - - - - - | - - - - - - * - | <-- PW_GOOD
+87   -> - - - - - - | - - - * - * - * | <-- TG42_IN
+88   -> - - - - - - | - - - - - - - - | <-- XHR_RDY
+LC65 -> - - - * - - | * * - - * - - - | <-- CT_WG
+LC105-> - - - * - - | * * - - - - - - | <-- LR_T0
+LC101-> - - - * - - | * * - - - - - - | <-- LR_T1
+LC26 -> - - - * - - | * * - - - - - - | <-- REG_P0
+LC22 -> - - - * - - | * * - - - - - - | <-- REG_P1
+LC88 -> * * - - * * | * * - - - * - * | <-- 10K_CLK
+
+
+* = The logic cell or pin is an input to the logic cell (or LAB) through the PIA.
+- = The logic cell or pin is not an input to the logic cell (or LAB).
+
+
+Device-Specific Information:c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+SP2_MAX_DX
+
+** LOGIC CELL INTERCONNECTIONS **
+
+Logic Array Block 'B':
+
+                                     Logic cells placed in LAB 'B'
+        +--------------------------- LC19 CLK_WG
+        | +------------------------- LC29 CMOS_AS
+        | | +----------------------- LC21 CNF_OFF
+        | | | +--------------------- LC23 CT0
+        | | | | +------------------- LC27 CT1
+        | | | | | +----------------- LC17 FDAT
+        | | | | | | +--------------- LC26 REG_P0
+        | | | | | | | +------------- LC22 REG_P1
+        | | | | | | | | +----------- LC30 STWG0
+        | | | | | | | | | +--------- LC24 STWG1
+        | | | | | | | | | | +------- LC28 WGR2
+        | | | | | | | | | | | +----- LC32 WGR3
+        | | | | | | | | | | | | +--- LC25 WR_PDOS
+        | | | | | | | | | | | | | +- LC20 :192
+        | | | | | | | | | | | | | | 
+        | | | | | | | | | | | | | |   Other LABs fed by signals
+        | | | | | | | | | | | | | |   that feed LAB 'B'
+LC      | | | | | | | | | | | | | | | A B C D E F G H |     Logic cells that feed LAB 'B':
+LC19 -> * - - - - - - - * * - - - - | - * - - - - * - | <-- CLK_WG
+LC23 -> - - - * * * - - - - * * - * | - * * * - - - - | <-- CT0
+LC17 -> - - - - - - - - - - * * - - | - * * - - - - - | <-- FDAT
+LC26 -> - - - - - - * * - - - - - - | * * - - - - - - | <-- REG_P0
+LC22 -> - - - - - - * * - - - - - - | * * - - - - - - | <-- REG_P1
+LC30 -> * - - - - - - - * * - - - - | - * - - - - - - | <-- STWG0
+LC24 -> * - - - - - - - - * - - - - | - * - - - - - - | <-- STWG1
+LC28 -> - - - - - - - - - - * * - - | - * * - - - - - | <-- WGR2
+LC32 -> - - - - - - - - - - * * - - | - * * - - - - - | <-- WGR3
+LC20 -> - - - - - * - - - - - - - - | - * - - - - - - | <-- :192
+
+Pin
+89   -> - - - - - - - - - - - - - - | - - - - - * * - | <-- EPM_RES
+44   -> - * - - - - - - - - - - * - | * * - - - * * * | <-- FDD_C0
+45   -> - * - - - - - - - - - - * - | * * - - - * * * | <-- FDD_C1
+46   -> - * - - - - - - - - - - * - | * * - - - * * * | <-- FDD_C2
+47   -> - * - - - - - - - - - - * - | * * - - - * * * | <-- HDD_C0
+42   -> - * - - - - - - - - - - * - | * * - - - * * * | <-- HDD_C1
+41   -> - * - - - - - - - - - - * - | * * - - - * * * | <-- HDD_C2
+40   -> - * - - - - - - - - - - * - | * * - - - * * * | <-- HDD_C3
+90   -> - - - - - - - - - - - - - - | - - - - - - * - | <-- PW_GOOD
+92   -> - - - - - * - - - - - - - * | - * - - - - - - | <-- RDAT
+87   -> - - - - - - - - - - - - - - | - - - * - * - * | <-- TG42_IN
+37   -> - - * - - - - - - - - - - - | - * - - - - - - | <-- XACS
+88   -> - - - - - - - - - - - - - - | - - - - - - - - | <-- XHR_RDY
+LC56 -> - - - * * * - - - - * * - * | - * * * * - - - | <-- CLKZZ
+LC85 -> - - * - - - - - - - - - - - | - * - - - * * * | <-- /CONF_X
+LC65 -> * - - - - - * * * * - - - - | * * - - * - - - | <-- CT_WG
+LC105-> - - - - - - * * - - - - - - | * * - - - - - - | <-- LR_T0
+LC101-> - - - - - - * * - - - - - - | * * - - - - - - | <-- LR_T1
+LC42 -> - - - - - - - - - - * * - - | - * * - - - - - | <-- WGR0
+LC36 -> - - - - - - - - - - * * - - | - * * - - - - - | <-- WGR1
+LC88 -> - * - - - - - - - - - - * - | * * - - - * - * | <-- 10K_CLK
+LC91 -> - - - - - * - - - - * * - * | - * * - * * - - | <-- 10K_D0
+
+
+* = The logic cell or pin is an input to the logic cell (or LAB) through the PIA.
+- = The logic cell or pin is not an input to the logic cell (or LAB).
+
+
+Device-Specific Information:c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+SP2_MAX_DX
+
+** LOGIC CELL INTERCONNECTIONS **
+
+Logic Array Block 'C':
+
+                                         Logic cells placed in LAB 'C'
+        +------------------------------- LC39 CTH0
+        | +----------------------------- LC40 CTH1
+        | | +--------------------------- LC35 CTH2
+        | | | +------------------------- LC45 CTH3
+        | | | | +----------------------- LC37 CTH4
+        | | | | | +--------------------- LC33 CTV2
+        | | | | | | +------------------- LC34 CTV3
+        | | | | | | | +----------------- LC38 CTV4
+        | | | | | | | | +--------------- LC47 CTV5
+        | | | | | | | | | +------------- LC48 CTV6
+        | | | | | | | | | | +----------- LC44 CTV7
+        | | | | | | | | | | | +--------- LC46 QDAT
+        | | | | | | | | | | | | +------- LC41 SINC_1
+        | | | | | | | | | | | | | +----- LC43 SINC_2
+        | | | | | | | | | | | | | | +--- LC42 WGR0
+        | | | | | | | | | | | | | | | +- LC36 WGR1
+        | | | | | | | | | | | | | | | | 
+        | | | | | | | | | | | | | | | |   Other LABs fed by signals
+        | | | | | | | | | | | | | | | |   that feed LAB 'C'
+LC      | | | | | | | | | | | | | | | | | A B C D E F G H |     Logic cells that feed LAB 'C':
+LC39 -> * * * * * - - - - - - - * - - - | - - * - - - - - | <-- CTH0
+LC40 -> - * * * * - - - - - - - * - - - | - - * - - - - - | <-- CTH1
+LC35 -> - - * * * - - - - - - - * - - - | - - * - - - * - | <-- CTH2
+LC45 -> - - - * * - - - - - - - * - - - | - - * - - - * - | <-- CTH3
+LC37 -> - - - - * - - - - - - - * - - - | - - * - - - * - | <-- CTH4
+LC33 -> - - - - - * * * * * * - - * - - | - - * - - - * - | <-- CTV2
+LC34 -> - - - - - - * * * * * - - * - - | - - * - - - * - | <-- CTV3
+LC38 -> - - - - - - - * * * * - - * - - | - - * - - - * - | <-- CTV4
+LC47 -> - - - - - - - - * * * - - * - - | - - * - - - * - | <-- CTV5
+LC48 -> - - - - - - - - - * * - - * - - | - - * - - - * - | <-- CTV6
+LC44 -> - - - - - - - - - - * - - * - - | - - * - - - * - | <-- CTV7
+LC41 -> - - - - - - - - - - - - * - - - | - - * - - - * - | <-- SINC_1
+LC43 -> - - - - - - - - - - - - - * - - | - - * - - - * - | <-- SINC_2
+LC42 -> - - - - - - - - - - - * - - * * | - * * - - - - - | <-- WGR0
+LC36 -> - - - - - - - - - - - * - - * * | - * * - - - - - | <-- WGR1
+
+Pin
+89   -> - - - - - - - - - - - - - - - - | - - - - - * * - | <-- EPM_RES
+90   -> - - - - - - - - - - - - - - - - | - - - - - - * - | <-- PW_GOOD
+87   -> - - - - - - - - - - - - - - - - | - - - * - * - * | <-- TG42_IN
+88   -> - - - - - - - - - - - - - - - - | - - - - - - - - | <-- XHR_RDY
+LC53 -> * * * * * - - - - - - - * - - - | - - * - - * * - | <-- AUD
+LC56 -> - - - - - - - - - - - * - - * * | - * * * * - - - | <-- CLKZZ
+LC106-> - - - - - * * * * * * - - * - - | - - * - - - * - | <-- CTV0
+LC103-> - - - - - * * * * * * - - * - - | - - * - - - * - | <-- CTV1
+LC23 -> - - - - - - - - - - - * - - * * | - * * * - - - - | <-- CT0
+LC17 -> - - - - - - - - - - - * - - * * | - * * - - - - - | <-- FDAT
+LC104-> - - * * * * * * * * * - * * - - | - - * - - - * - | <-- SINC_H
+LC99 -> - - - - - * * * * * * - - * - - | - - * - - - * - | <-- SINC_V
+LC28 -> - - - - - - - - - - - * - - * * | - * * - - - - - | <-- WGR2
+LC32 -> - - - - - - - - - - - * - - * * | - * * - - - - - | <-- WGR3
+LC91 -> - - - - - - - - - - - * - - * * | - * * - * * - - | <-- 10K_D0
+
+
+* = The logic cell or pin is an input to the logic cell (or LAB) through the PIA.
+- = The logic cell or pin is not an input to the logic cell (or LAB).
+
+
+Device-Specific Information:c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+SP2_MAX_DX
+
+** LOGIC CELL INTERCONNECTIONS **
+
+Logic Array Block 'D':
+
+                     Logic cells placed in LAB 'D'
+        +----------- LC53 AUD
+        | +--------- LC56 CLKZZ
+        | | +------- LC57 CLK14
+        | | | +----- LC49 CT2
+        | | | | +--- LC51 TG42_BUF
+        | | | | | +- LC58 XCT0
+        | | | | | | 
+        | | | | | |   Other LABs fed by signals
+        | | | | | |   that feed LAB 'D'
+LC      | | | | | | | A B C D E F G H |     Logic cells that feed LAB 'D':
+LC56 -> * * - * - * | - * * * * - - - | <-- CLKZZ
+LC49 -> * - - * - - | - - - * - - - - | <-- CT2
+LC58 -> - * * - - * | - - - * - - - - | <-- XCT0
+
+Pin
+89   -> - - - - - - | - - - - - * * - | <-- EPM_RES
+90   -> - - - - - - | - - - - - - * - | <-- PW_GOOD
+87   -> - * - - * * | - - - * - * - * | <-- TG42_IN
+88   -> - - - - - - | - - - - - - - - | <-- XHR_RDY
+LC23 -> * - - * - - | - * * * - - - - | <-- CT0
+LC27 -> * - - * - - | - - - * - - - - | <-- CT1
+
+
+* = The logic cell or pin is an input to the logic cell (or LAB) through the PIA.
+- = The logic cell or pin is not an input to the logic cell (or LAB).
+
+
+Device-Specific Information:c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+SP2_MAX_DX
+
+** LOGIC CELL INTERCONNECTIONS **
+
+Logic Array Block 'E':
+
+             Logic cells placed in LAB 'E'
+        +--- LC65 CT_WG
+        | +- LC77 HD_DIR
+        | | 
+        | |   Other LABs fed by signals
+        | |   that feed LAB 'E'
+LC      | | | A B C D E F G H |     Logic cells that feed LAB 'E':
+LC65 -> * - | * * - - * - - - | <-- CT_WG
+
+Pin
+89   -> - - | - - - - - * * - | <-- EPM_RES
+90   -> - - | - - - - - - * - | <-- PW_GOOD
+25   -> * - | - - - - * - - - | <-- RSTB
+94   -> * - | - - - - * - - - | <-- STE
+87   -> - - | - - - * - * - * | <-- TG42_IN
+10   -> * - | - - - - * - - - | <-- WSTB
+88   -> - - | - - - - - - - - | <-- XHR_RDY
+LC56 -> * - | - * * * * - - - | <-- CLKZZ
+LC115-> - * | - - - - * - - - | <-- XHD_RD
+LC91 -> * - | - * * - * * - - | <-- 10K_D0
+
+
+* = The logic cell or pin is an input to the logic cell (or LAB) through the PIA.
+- = The logic cell or pin is not an input to the logic cell (or LAB).
+
+
+Device-Specific Information:c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+SP2_MAX_DX
+
+** LOGIC CELL INTERCONNECTIONS **
+
+Logic Array Block 'F':
+
+                 Logic cells placed in LAB 'F'
+        +------- LC85 /CONF_X
+        | +----- LC81 HD_CS
+        | | +--- LC88 10K_CLK
+        | | | +- LC91 10K_D0
+        | | | | 
+        | | | |   Other LABs fed by signals
+        | | | |   that feed LAB 'F'
+LC      | | | | | A B C D E F G H |     Logic cells that feed LAB 'F':
+LC85 -> - - - * | - * - - - * * * | <-- /CONF_X
+LC88 -> - - - * | * * - - - * - * | <-- 10K_CLK
+LC91 -> - - - * | - * * - * * - - | <-- 10K_D0
+
+Pin
+60   -> - - - * | - - - - - * - - | <-- D0
+89   -> * - - - | - - - - - * * - | <-- EPM_RES
+44   -> * - - * | * * - - - * * * | <-- FDD_C0
+45   -> * - - * | * * - - - * * * | <-- FDD_C1
+46   -> * - * * | * * - - - * * * | <-- FDD_C2
+47   -> * - * * | * * - - - * * * | <-- HDD_C0
+42   -> * - - * | * * - - - * * * | <-- HDD_C1
+41   -> * - - * | * * - - - * * * | <-- HDD_C2
+40   -> * - - * | * * - - - * * * | <-- HDD_C3
+63   -> - - * - | - - - - - * - - | <-- /MREQ
+90   -> - - - - | - - - - - - * - | <-- PW_GOOD
+87   -> - - * - | - - - * - * - * | <-- TG42_IN
+57   -> - - * - | - - - - - * - - | <-- /WR
+88   -> - - - - | - - - - - - - - | <-- XHR_RDY
+LC53 -> * - - - | - - * - - * * - | <-- AUD
+LC21 -> - - * * | - - - - - * - - | <-- CNF_OFF
+LC109-> * - - - | - - - - - * - - | <-- XHD_RES
+
+
+* = The logic cell or pin is an input to the logic cell (or LAB) through the PIA.
+- = The logic cell or pin is not an input to the logic cell (or LAB).
+
+
+Device-Specific Information:c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+SP2_MAX_DX
+
+** LOGIC CELL INTERCONNECTIONS **
+
+Logic Array Block 'G':
+
+                         Logic cells placed in LAB 'G'
+        +--------------- LC106 CTV0
+        | +------------- LC103 CTV1
+        | | +----------- LC105 LR_T0
+        | | | +--------- LC101 LR_T1
+        | | | | +------- LC102 SINC
+        | | | | | +----- LC104 SINC_H
+        | | | | | | +--- LC99 SINC_V
+        | | | | | | | +- LC109 XHD_RES
+        | | | | | | | | 
+        | | | | | | | |   Other LABs fed by signals
+        | | | | | | | |   that feed LAB 'G'
+LC      | | | | | | | | | A B C D E F G H |     Logic cells that feed LAB 'G':
+LC106-> * * - - - - - - | - - * - - - * - | <-- CTV0
+LC103-> * * - - - - - - | - - * - - - * - | <-- CTV1
+LC104-> * * - - * - * - | - - * - - - * - | <-- SINC_H
+LC99 -> * * - - * - - * | - - * - - - * - | <-- SINC_V
+
+Pin
+89   -> - - - - - - - * | - - - - - * * - | <-- EPM_RES
+44   -> - - - - - - * - | * * - - - * * * | <-- FDD_C0
+45   -> - - - - - - * - | * * - - - * * * | <-- FDD_C1
+46   -> - - - - - - * - | * * - - - * * * | <-- FDD_C2
+47   -> - - - - - - * - | * * - - - * * * | <-- HDD_C0
+42   -> - - - - - - * - | * * - - - * * * | <-- HDD_C1
+41   -> - - - - - - * - | * * - - - * * * | <-- HDD_C2
+40   -> - - - - - - * - | * * - - - * * * | <-- HDD_C3
+90   -> - - - - - - - * | - - - - - - * - | <-- PW_GOOD
+30   -> - - - * - - - - | - - - - - - * - | <-- SL
+29   -> - - * - - - - - | - - - - - - * - | <-- SR
+87   -> - - - - - - - - | - - - * - * - * | <-- TG42_IN
+12   -> - - * * - - - - | - - - - - - * - | <-- TR43
+9    -> - - * * - - - - | - - - - - - * - | <-- WD
+88   -> - - - - - - - - | - - - - - - - - | <-- XHR_RDY
+LC53 -> - - - - - * - - | - - * - - * * - | <-- AUD
+LC19 -> - - * * - - - - | - * - - - - * - | <-- CLK_WG
+LC85 -> - - - - - - * - | - * - - - * * * | <-- /CONF_X
+LC35 -> - - - - - * - - | - - * - - - * - | <-- CTH2
+LC45 -> - - - - - * - - | - - * - - - * - | <-- CTH3
+LC37 -> - - - - - * - - | - - * - - - * - | <-- CTH4
+LC33 -> - - - - - - * - | - - * - - - * - | <-- CTV2
+LC34 -> - - - - - - * - | - - * - - - * - | <-- CTV3
+LC38 -> - - - - - - * - | - - * - - - * - | <-- CTV4
+LC47 -> - - - - - - * - | - - * - - - * - | <-- CTV5
+LC48 -> - - - - - - * - | - - * - - - * - | <-- CTV6
+LC44 -> - - - - - - * - | - - * - - - * - | <-- CTV7
+LC41 -> - - - - - * - - | - - * - - - * - | <-- SINC_1
+LC43 -> - - - - - - * - | - - * - - - * - | <-- SINC_2
+
+
+* = The logic cell or pin is an input to the logic cell (or LAB) through the PIA.
+- = The logic cell or pin is not an input to the logic cell (or LAB).
+
+
+Device-Specific Information:c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+SP2_MAX_DX
+
+** LOGIC CELL INTERCONNECTIONS **
+
+Logic Array Block 'H':
+
+                     Logic cells placed in LAB 'H'
+        +----------- LC115 XHD_RD
+        | +--------- LC113 XHD_WR
+        | | +------- LC120 XHD1_CS1
+        | | | +----- LC121 XHD1_CS2
+        | | | | +--- LC123 XHD2_CS1
+        | | | | | +- LC125 XHD2_CS2
+        | | | | | | 
+        | | | | | |   Other LABs fed by signals
+        | | | | | |   that feed LAB 'H'
+LC      | | | | | | | A B C D E F G H |     Logic cells that feed LAB 'H':
+
+Pin
+89   -> - - - - - - | - - - - - * * - | <-- EPM_RES
+44   -> - - * * * * | * * - - - * * * | <-- FDD_C0
+45   -> * * * * * * | * * - - - * * * | <-- FDD_C1
+46   -> - - * * * * | * * - - - * * * | <-- FDD_C2
+47   -> * * * * * * | * * - - - * * * | <-- HDD_C0
+42   -> * * * * * * | * * - - - * * * | <-- HDD_C1
+41   -> * * * * * * | * * - - - * * * | <-- HDD_C2
+40   -> - - * * * * | * * - - - * * * | <-- HDD_C3
+90   -> - - - - - - | - - - - - - * - | <-- PW_GOOD
+87   -> - - * * * * | - - - * - * - * | <-- TG42_IN
+88   -> - - - - - - | - - - - - - - - | <-- XHR_RDY
+LC85 -> * * * * * * | - * - - - * * * | <-- /CONF_X
+LC88 -> * * - - - - | * * - - - * - * | <-- 10K_CLK
+
+
+* = The logic cell or pin is an input to the logic cell (or LAB) through the PIA.
+- = The logic cell or pin is not an input to the logic cell (or LAB).
+
+
+Device-Specific Information:c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+SP2_MAX_DX
+
+** EQUATIONS **
+
+D0       : INPUT;
+EPM_RES  : INPUT;
+FDD_C0   : INPUT;
+FDD_C1   : INPUT;
+FDD_C2   : INPUT;
+HDD_C0   : INPUT;
+HDD_C1   : INPUT;
+HDD_C2   : INPUT;
+HDD_C3   : INPUT;
+PW_GOOD  : INPUT;
+RDAT     : INPUT;
+RSTB     : INPUT;
+SL       : INPUT;
+SR       : INPUT;
+STE      : INPUT;
+TG42_IN  : INPUT;
+TR43     : INPUT;
+UNUSED1  : INPUT;
+UNUSED2  : INPUT;
+UNUSED5  : INPUT;
+UNUSED7  : INPUT;
+UNUSED17 : INPUT;
+UNUSED21 : INPUT;
+UNUSED22 : INPUT;
+UNUSED23 : INPUT;
+UNUSED24 : INPUT;
+UNUSED27 : INPUT;
+UNUSED28 : INPUT;
+UNUSED33 : INPUT;
+UNUSED49 : INPUT;
+UNUSED50 : INPUT;
+UNUSED53 : INPUT;
+UNUSED55 : INPUT;
+UNUSED61 : INPUT;
+UNUSED65 : INPUT;
+UNUSED69 : INPUT;
+UNUSED70 : INPUT;
+UNUSED72 : INPUT;
+UNUSED77 : INPUT;
+UNUSED78 : INPUT;
+UNUSED84 : INPUT;
+UNUSED85 : INPUT;
+WD       : INPUT;
+WSTB     : INPUT;
+XACS     : INPUT;
+XHR_RDY  : INPUT;
+/MREQ    : INPUT;
+/WR      : INPUT;
+
+-- Node name is 'AUD' = 'CT3' from file "sp2_max_dx.tdf" line 127, column 4
+-- Equation name is 'AUD', location is LC053, type is output.
+ AUD     = TFFE( _EQ001,  XCT1,  VCC,  VCC,  VCC);
+  _EQ001 =  CT0 &  CT1 &  CT2;
+
+-- Node name is 'CLK_WG' = 'STWG2' from file "sp2_max_dx.tdf" line 141, column 6
+-- Equation name is 'CLK_WG', location is LC019, type is output.
+ CLK_WG  = TFFE( _EQ002,  _EQ003,  VCC,  VCC,  VCC);
+  _EQ002 =  STWG0 &  STWG1;
+  _EQ003 =  _X001 &  _X002;
+  _X001  = EXP(!CLK_WG & !CT_WG);
+  _X002  = EXP( CLK_WG &  CT_WG);
+
+-- Node name is 'CLKZZ' = 'XCT1' from file "sp2_max_dx.tdf" line 121, column 5
+-- Equation name is 'CLKZZ', location is LC056, type is bidir.
+CLKZZ    = TRI(XCT1,  CNF_OFF);
+XCT1     = TFFE( XCT0,  _EQ004,  VCC,  VCC,  VCC);
+  _EQ004 =  _X003 &  _X004;
+  _X003  = EXP(!TG42_IN &  XCT1);
+  _X004  = EXP( TG42_IN & !XCT1);
+
+-- Node name is 'CLK14' = ':178' from file "sp2_max_dx.tdf" line 285, column 11
+-- Equation name is 'CLK14', type is output 
+ CLK14   = TFFE( VCC,  XCT0,  VCC,  VCC,  VCC);
+
+-- Node name is 'CMOS_AS' = ':214' from file "sp2_max_dx.tdf" line 459, column 13
+-- Equation name is 'CMOS_AS', type is output 
+CMOS_AS  = _LC029~NOT;
+_LC029~NOT = DFFE( _EQ005 $  GND,  10K_CLK,  FDD_C2,  VCC,  VCC);
+  _EQ005 =  FDD_C0 & !FDD_C1 & !HDD_C0 &  HDD_C1 &  HDD_C2 & !HDD_C3;
+
+-- Node name is 'CMOS_DRD' = ':215' from file "sp2_max_dx.tdf" line 460, column 13
+-- Equation name is 'CMOS_DRD', type is output 
+ CMOS_DRD = DFFE( _EQ006 $  VCC,  10K_CLK,  VCC,  FDD_C2,  VCC);
+  _EQ006 = !FDD_C0 &  FDD_C1 & !HDD_C0 &  HDD_C1 &  HDD_C2 &  HDD_C3;
+
+-- Node name is 'CMOS_DWR' = ':213' from file "sp2_max_dx.tdf" line 458, column 13
+-- Equation name is 'CMOS_DWR', type is output 
+ CMOS_DWR = DFFE( _EQ007 $  VCC,  10K_CLK,  VCC,  FDD_C2,  VCC);
+  _EQ007 =  FDD_C0 & !FDD_C1 & !HDD_C0 &  HDD_C1 &  HDD_C2 &  HDD_C3;
+
+-- Node name is 'CNF_OFF' from file "sp2_max_dx.tdf" line 292, column 12
+-- Equation name is 'CNF_OFF', location is LC021, type is buried.
+CNF_OFF  = DFFE( GND $  GND,  GND,  XACS,  /CONF_X,  VCC);
+
+-- Node name is 'CTH0' from file "sp2_max_dx.tdf" line 128, column 5
+-- Equation name is 'CTH0', location is LC039, type is buried.
+CTH0     = TFFE( VCC, !AUD,  VCC,  VCC,  VCC);
+
+-- Node name is 'CTH1' from file "sp2_max_dx.tdf" line 128, column 5
+-- Equation name is 'CTH1', location is LC040, type is buried.
+CTH1     = TFFE( CTH0, !AUD,  VCC,  VCC,  VCC);
+
+-- Node name is 'CTH2' from file "sp2_max_dx.tdf" line 128, column 5
+-- Equation name is 'CTH2', location is LC035, type is buried.
+CTH2     = TFFE( _EQ008, !AUD,  VCC,  VCC,  VCC);
+  _EQ008 =  CTH0 &  CTH1 & !CTH2 & !SINC_H
+         #  CTH0 &  CTH1 &  CTH2;
+
+-- Node name is 'CTH3' from file "sp2_max_dx.tdf" line 128, column 5
+-- Equation name is 'CTH3', location is LC045, type is buried.
+CTH3     = TFFE( _EQ009, !AUD,  VCC,  VCC,  VCC);
+  _EQ009 =  CTH0 &  CTH1 &  CTH2 & !CTH3 & !SINC_H
+         #  CTH0 &  CTH1 &  CTH2 &  CTH3
+         #  CTH0 &  CTH1 &  CTH3 &  SINC_H;
+
+-- Node name is 'CTH4' from file "sp2_max_dx.tdf" line 128, column 5
+-- Equation name is 'CTH4', location is LC037, type is buried.
+CTH4     = TFFE( _EQ010, !AUD,  VCC,  VCC,  VCC);
+  _EQ010 =  CTH0 &  CTH1 &  CTH2 &  CTH3 & !CTH4 & !SINC_H
+         #  CTH0 &  CTH1 &  CTH2 &  CTH3 &  CTH4
+         #  CTH0 &  CTH1 &  CTH4 &  SINC_H;
+
+-- Node name is 'CTV0' from file "sp2_max_dx.tdf" line 129, column 5
+-- Equation name is 'CTV0', location is LC106, type is buried.
+CTV0     = DFFE( _EQ011 $  GND,  SINC_H,  VCC,  VCC,  VCC);
+  _EQ011 = !CTV0 &  _X005;
+  _X005  = EXP( CTV0 &  CTV1 &  SINC_V);
+
+-- Node name is 'CTV1' from file "sp2_max_dx.tdf" line 129, column 5
+-- Equation name is 'CTV1', location is LC103, type is buried.
+CTV1     = DFFE( _EQ012 $  GND,  SINC_H,  VCC,  VCC,  VCC);
+  _EQ012 = !CTV0 &  CTV1 &  _X005
+         #  CTV0 & !CTV1 &  _X005;
+  _X005  = EXP( CTV0 &  CTV1 &  SINC_V);
+
+-- Node name is 'CTV2' from file "sp2_max_dx.tdf" line 129, column 5
+-- Equation name is 'CTV2', location is LC033, type is buried.
+CTV2     = DFFE( _EQ013 $  GND,  SINC_H,  VCC,  VCC,  VCC);
+  _EQ013 =  CTV0 &  CTV1 & !CTV2 &  _X005
+         # !CTV0 &  CTV2 &  _X005
+         # !CTV1 &  CTV2 &  _X005;
+  _X005  = EXP( CTV0 &  CTV1 &  SINC_V);
+
+-- Node name is 'CTV3' from file "sp2_max_dx.tdf" line 129, column 5
+-- Equation name is 'CTV3', location is LC034, type is buried.
+CTV3     = TFFE( _EQ014,  SINC_H,  VCC,  VCC,  VCC);
+  _EQ014 =  CTV0 &  CTV1 &  CTV2 & !CTV3 &  _X005
+         #  CTV0 &  CTV1 &  CTV2 &  CTV3
+         #  CTV0 &  CTV1 &  CTV3 &  SINC_V;
+  _X005  = EXP( CTV0 &  CTV1 &  SINC_V);
+
+-- Node name is 'CTV4' from file "sp2_max_dx.tdf" line 129, column 5
+-- Equation name is 'CTV4', location is LC038, type is buried.
+CTV4     = TFFE( _EQ015,  SINC_H,  VCC,  VCC,  VCC);
+  _EQ015 =  CTV0 &  CTV1 &  CTV2 &  CTV3 & !CTV4 &  _X005
+         #  CTV0 &  CTV1 &  CTV2 &  CTV3 &  CTV4
+         #  CTV0 &  CTV1 &  CTV4 &  SINC_V;
+  _X005  = EXP( CTV0 &  CTV1 &  SINC_V);
+
+-- Node name is 'CTV5' from file "sp2_max_dx.tdf" line 129, column 5
+-- Equation name is 'CTV5', location is LC047, type is buried.
+CTV5     = TFFE( _EQ016,  SINC_H,  VCC,  VCC,  VCC);
+  _EQ016 =  CTV0 &  CTV1 &  CTV2 &  CTV3 &  CTV4 & !CTV5 &  _X005
+         #  CTV0 &  CTV1 &  CTV2 &  CTV3 &  CTV4 &  CTV5
+         #  CTV0 &  CTV1 &  CTV5 &  SINC_V;
+  _X005  = EXP( CTV0 &  CTV1 &  SINC_V);
+
+-- Node name is 'CTV6' from file "sp2_max_dx.tdf" line 129, column 5
+-- Equation name is 'CTV6', location is LC048, type is buried.
+CTV6     = TFFE( _EQ017,  SINC_H,  VCC,  VCC,  VCC);
+  _EQ017 =  CTV0 &  CTV1 &  CTV2 &  CTV3 &  CTV4 &  CTV5 & !CTV6 &  _X005
+         #  CTV0 &  CTV1 &  CTV2 &  CTV3 &  CTV4 &  CTV5 &  CTV6
+         #  CTV0 &  CTV1 &  CTV6 &  SINC_V;
+  _X005  = EXP( CTV0 &  CTV1 &  SINC_V);
+
+-- Node name is 'CTV7' from file "sp2_max_dx.tdf" line 129, column 5
+-- Equation name is 'CTV7', location is LC044, type is buried.
+CTV7     = TFFE( _EQ018,  SINC_H,  VCC,  VCC,  VCC);
+  _EQ018 =  CTV0 &  CTV1 &  CTV2 &  CTV3 &  CTV4 &  CTV5 &  CTV6 & !CTV7 & 
+              _X005
+         #  CTV0 &  CTV1 &  CTV2 &  CTV3 &  CTV4 &  CTV5 &  CTV6 &  CTV7
+         #  CTV0 &  CTV1 &  CTV7 &  SINC_V;
+  _X005  = EXP( CTV0 &  CTV1 &  SINC_V);
+
+-- Node name is 'CT_WG' from file "sp2_max_dx.tdf" line 302, column 11
+-- Equation name is 'CT_WG', location is LC065, type is buried.
+CT_WG    = TFFE( VCC,  _EQ019,  VCC,  VCC,  VCC);
+  _EQ019 =  _X006 &  _X007 &  _X008;
+  _X006  = EXP(!CT_WG & !XCT1);
+  _X007  = EXP( CT_WG &  XCT1 &  _X009);
+  _X008  = EXP(!STE & !XCT1 &  _X010 & !10K_D0);
+  _X009  = EXP(!STE &  _X010 & !10K_D0);
+  _X010  = EXP(!RSTB & !WSTB &  _X009);
+
+-- Node name is 'CT0' from file "sp2_max_dx.tdf" line 127, column 4
+-- Equation name is 'CT0', location is LC023, type is buried.
+CT0      = TFFE( VCC,  XCT1,  VCC,  VCC,  VCC);
+
+-- Node name is 'CT1' from file "sp2_max_dx.tdf" line 127, column 4
+-- Equation name is 'CT1', location is LC027, type is buried.
+CT1      = TFFE( CT0,  XCT1,  VCC,  VCC,  VCC);
+
+-- Node name is 'CT2' from file "sp2_max_dx.tdf" line 127, column 4
+-- Equation name is 'CT2', location is LC049, type is buried.
+CT2      = TFFE( _EQ020,  XCT1,  VCC,  VCC,  VCC);
+  _EQ020 =  CT0 &  CT1;
+
+-- Node name is 'DENS_X' 
+-- Equation name is 'DENS_X', location is LC011, type is output.
+ DENS_X  = LCELL( GND $  VCC);
+
+-- Node name is 'FDAT' = ':190' from file "sp2_max_dx.tdf" line 336, column 9
+-- Equation name is 'FDAT', type is output 
+ FDAT    = DFFE( _EQ021 $  VCC,  _EQ022,  VCC,  VCC,  VCC);
+  _EQ021 =  _LC020 &  _X011 &  _X012;
+  _X011  = EXP( RDAT &  _X013 &  _X014);
+  _X012  = EXP( _X015 &  _X016);
+  _X013  = EXP( CT0 & !10K_D0);
+  _X014  = EXP( XCT1 &  10K_D0);
+  _X015  = EXP(!RDAT &  _X013 &  _X014);
+  _X016  = EXP( _X012 &  _X017);
+  _X017  = EXP( RDAT &  _X013 &  _X014);
+  _EQ022 =  _X018;
+  _X018  = EXP( _X013 &  _X014);
+  _X013  = EXP( CT0 & !10K_D0);
+  _X014  = EXP( XCT1 &  10K_D0);
+
+-- Node name is 'HD_CS' 
+-- Equation name is 'HD_CS', location is LC081, type is output.
+ HD_CS   = LCELL( GND $  GND);
+
+-- Node name is 'HD_DIR' = ':216' from file "sp2_max_dx.tdf" line 467, column 12
+-- Equation name is 'HD_DIR', type is output 
+ HD_DIR  = LCELL( XHD_RD $  GND);
+
+-- Node name is 'LR_T0' from file "sp2_max_dx.tdf" line 168, column 6
+-- Equation name is 'LR_T0', location is LC105, type is buried.
+LR_T0    = DFFE( _EQ023 $  WD,  CLK_WG,  VCC,  VCC,  VCC);
+  _EQ023 =  SR &  TR43 &  WD;
+
+-- Node name is 'LR_T1' from file "sp2_max_dx.tdf" line 168, column 6
+-- Equation name is 'LR_T1', location is LC101, type is buried.
+LR_T1    = DFFE( _EQ024 $  WD,  CLK_WG,  VCC,  VCC,  VCC);
+  _EQ024 =  SL &  TR43 &  WD;
+
+-- Node name is 'QDAT' = 'WGR4' from file "sp2_max_dx.tdf" line 143, column 5
+-- Equation name is 'QDAT', location is LC046, type is output.
+ QDAT    = TFFE( _EQ025,  _EQ026,  VCC,  VCC,  VCC);
+  _EQ025 =  FDAT &  WGR0 &  WGR1 &  WGR2 &  WGR3;
+  _EQ026 =  _X018;
+  _X018  = EXP( _X013 &  _X014);
+  _X013  = EXP( CT0 & !10K_D0);
+  _X014  = EXP( XCT1 &  10K_D0);
+
+-- Node name is 'REG_P0' from file "sp2_max_dx.tdf" line 146, column 7
+-- Equation name is 'REG_P0', location is LC026, type is buried.
+REG_P0   = DFFE( _EQ027 $  LR_T0, !CT_WG,  VCC,  VCC,  VCC);
+  _EQ027 = !LR_T0 & !LR_T1 & !REG_P0 &  _X019
+         #  LR_T1;
+  _X019  = EXP(!REG_P0 & !REG_P1);
+
+-- Node name is 'REG_P1' from file "sp2_max_dx.tdf" line 146, column 7
+-- Equation name is 'REG_P1', location is LC022, type is buried.
+REG_P1   = DFFE( _EQ028 $  LR_T1, !CT_WG,  VCC,  VCC,  VCC);
+  _EQ028 = !LR_T0 & !LR_T1 &  REG_P0 &  REG_P1 &  _X019
+         # !LR_T0 & !LR_T1 & !REG_P0 & !REG_P1 &  _X019;
+  _X019  = EXP(!REG_P0 & !REG_P1);
+
+-- Node name is 'SINC' 
+-- Equation name is 'SINC', location is LC102, type is output.
+ SINC    = LCELL( SINC_V $  SINC_H);
+
+-- Node name is 'SINC_H' = 'SINC_HT' from file "sp2_max_dx.tdf" line 131, column 2
+-- Equation name is 'SINC_H', location is LC104, type is output.
+ SINC_H  = DFFE( _EQ029 $  GND, !AUD,  VCC,  VCC,  VCC);
+  _EQ029 =  CTH2 & !CTH3 &  CTH4 &  SINC_1;
+
+-- Node name is 'SINC_V' = 'SINC_VT' from file "sp2_max_dx.tdf" line 132, column 2
+-- Equation name is 'SINC_V', location is LC099, type is output.
+ SINC_V  = DFFE( _EQ030 $  GND,  SINC_H,  VCC,  VCC,  VCC);
+  _EQ030 =  CTV2 & !CTV3 &  CTV4 &  CTV5 & !CTV6 & !CTV7 &  SINC_2 &  _X020
+         #  CTV2 &  CTV3 &  CTV4 &  CTV5 & !CTV6 & !CTV7 &  SINC_2;
+  _X020  = EXP( _X021 &  _X022);
+  _X021  = EXP( FDD_C0 & !FDD_C1 & !FDD_C2 &  HDD_C0 & !HDD_C1 & !HDD_C2 & 
+              HDD_C3);
+  _X022  = EXP( /CONF_X &  _X020 &  _X023);
+  _X023  = EXP(!FDD_C0 & !FDD_C1 & !FDD_C2 &  HDD_C0 & !HDD_C1 & !HDD_C2 & 
+              HDD_C3);
+
+-- Node name is 'SINC_1' = 'CTH5' from file "sp2_max_dx.tdf" line 128, column 5
+-- Equation name is 'SINC_1', location is LC041, type is bidir.
+SINC_1   = TRI(CTH5,  VCC);
+CTH5     = TFFE( _EQ031, !AUD,  VCC,  VCC,  VCC);
+  _EQ031 =  CTH0 &  CTH1 &  CTH2 &  CTH3 &  CTH4 & !SINC_H & !SINC_1
+         #  CTH0 &  CTH1 &  CTH2 &  CTH3 &  CTH4 &  SINC_1
+         #  CTH0 &  CTH1 &  SINC_H &  SINC_1;
+
+-- Node name is 'SINC_2' = 'CTV8' from file "sp2_max_dx.tdf" line 129, column 5
+-- Equation name is 'SINC_2', location is LC043, type is bidir.
+SINC_2   = TRI(CTV8,  VCC);
+CTV8     = DFFE( _EQ032 $  GND,  SINC_H,  VCC,  VCC,  VCC);
+  _EQ032 =  CTV0 &  CTV1 &  CTV2 &  CTV3 &  CTV4 &  CTV5 &  CTV6 &  CTV7 & 
+             !SINC_2 &  _X005
+         #  SINC_2 &  _X005 &  _X024;
+  _X005  = EXP( CTV0 &  CTV1 &  SINC_V);
+  _X024  = EXP( CTV0 &  CTV1 &  CTV2 &  CTV3 &  CTV4 &  CTV5 &  CTV6 &  CTV7);
+
+-- Node name is 'STWG0' from file "sp2_max_dx.tdf" line 141, column 6
+-- Equation name is 'STWG0', location is LC030, type is buried.
+STWG0    = TFFE( VCC,  _EQ033,  VCC,  VCC,  VCC);
+  _EQ033 =  _X001 &  _X002;
+  _X001  = EXP(!CLK_WG & !CT_WG);
+  _X002  = EXP( CLK_WG &  CT_WG);
+
+-- Node name is 'STWG1' from file "sp2_max_dx.tdf" line 141, column 6
+-- Equation name is 'STWG1', location is LC024, type is buried.
+STWG1    = TFFE( STWG0,  _EQ034,  VCC,  VCC,  VCC);
+  _EQ034 =  _X001 &  _X002;
+  _X001  = EXP(!CLK_WG & !CT_WG);
+  _X002  = EXP( CLK_WG &  CT_WG);
+
+-- Node name is 'TG42_BUF' = ':173' from file "sp2_max_dx.tdf" line 194, column 13
+-- Equation name is 'TG42_BUF', type is output 
+ TG42_BUF = LCELL(!TG42_IN $  GND);
+
+-- Node name is 'WDAT' = 'REG_P2' from file "sp2_max_dx.tdf" line 146, column 7
+-- Equation name is 'WDAT', location is LC008, type is output.
+ WDAT    = DFFE( _EQ035 $  GND, !CT_WG,  VCC,  VCC,  VCC);
+  _EQ035 = !LR_T0 & !LR_T1 &  _X025;
+  _X025  = EXP( _X026);
+  _X026  = EXP( REG_P0 & !REG_P1);
+
+-- Node name is 'WGR0' from file "sp2_max_dx.tdf" line 143, column 5
+-- Equation name is 'WGR0', location is LC042, type is buried.
+WGR0     = TFFE( _EQ036,  _EQ037,  VCC,  VCC,  VCC);
+  _EQ036 =  WGR0 &  WGR1 &  WGR2 & !WGR3
+         # !WGR0 & !WGR1 & !WGR2 &  WGR3
+         #  FDAT;
+  _EQ037 =  _X018;
+  _X018  = EXP( _X013 &  _X014);
+  _X013  = EXP( CT0 & !10K_D0);
+  _X014  = EXP( XCT1 &  10K_D0);
+
+-- Node name is 'WGR1' from file "sp2_max_dx.tdf" line 143, column 5
+-- Equation name is 'WGR1', location is LC036, type is buried.
+WGR1     = TFFE( _EQ038,  _EQ039,  VCC,  VCC,  VCC);
+  _EQ038 =  FDAT & !WGR0 & !WGR1 & !WGR2 & !WGR3
+         # !FDAT & !WGR1 &  WGR2 & !WGR3
+         # !FDAT &  WGR1 & !WGR3
+         #  FDAT &  WGR0;
+  _EQ039 =  _X018;
+  _X018  = EXP( _X013 &  _X014);
+  _X013  = EXP( CT0 & !10K_D0);
+  _X014  = EXP( XCT1 &  10K_D0);
+
+-- Node name is 'WGR2' from file "sp2_max_dx.tdf" line 143, column 5
+-- Equation name is 'WGR2', location is LC028, type is buried.
+WGR2     = TFFE( _EQ040,  _EQ041,  VCC,  VCC,  VCC);
+  _EQ040 = !FDAT &  WGR1 &  WGR2 & !WGR3
+         #  FDAT &  WGR0 &  WGR1
+         # !FDAT & !WGR2 & !WGR3;
+  _EQ041 =  _X018;
+  _X018  = EXP( _X013 &  _X014);
+  _X013  = EXP( CT0 & !10K_D0);
+  _X014  = EXP( XCT1 &  10K_D0);
+
+-- Node name is 'WGR3' from file "sp2_max_dx.tdf" line 143, column 5
+-- Equation name is 'WGR3', location is LC032, type is buried.
+WGR3     = TFFE( _EQ042,  _EQ043,  VCC,  VCC,  VCC);
+  _EQ042 =  FDAT &  WGR0 &  WGR1 &  WGR2 &  WGR3
+         #  WGR0 &  WGR1 &  WGR2 & !WGR3
+         # !FDAT &  WGR1 &  WGR2 & !WGR3;
+  _EQ043 =  _X018;
+  _X018  = EXP( _X013 &  _X014);
+  _X013  = EXP( CT0 & !10K_D0);
+  _X014  = EXP( XCT1 &  10K_D0);
+
+-- Node name is 'WR_PDOS' = ':210' from file "sp2_max_dx.tdf" line 454, column 13
+-- Equation name is 'WR_PDOS', type is output 
+ WR_PDOS = DFFE( _EQ044 $  VCC,  10K_CLK,  VCC,  FDD_C2,  VCC);
+  _EQ044 =  FDD_C0 & !FDD_C1 & !HDD_C0 & !HDD_C1 & !HDD_C2 & !HDD_C3;
+
+-- Node name is 'XCT0' from file "sp2_max_dx.tdf" line 121, column 5
+-- Equation name is 'XCT0', location is LC058, type is buried.
+XCT0     = TFFE( VCC,  _EQ045,  VCC,  VCC,  VCC);
+  _EQ045 =  _X003 &  _X004;
+  _X003  = EXP(!TG42_IN &  XCT1);
+  _X004  = EXP( TG42_IN & !XCT1);
+
+-- Node name is 'XHD_RD' = ':219' from file "sp2_max_dx.tdf" line 494, column 27
+-- Equation name is 'XHD_RD', type is output 
+ XHD_RD  = DFFE( _EQ046 $  VCC,  10K_CLK,  VCC, !_EQ047,  VCC);
+  _EQ046 =  FDD_C1 &  HDD_C0 & !HDD_C1 &  HDD_C2;
+  _EQ047 =  _X027;
+  _X027  = EXP( /CONF_X &  HDD_C0);
+
+-- Node name is 'XHD_RES' = ':217' from file "sp2_max_dx.tdf" line 481, column 27
+-- Equation name is 'XHD_RES', type is output 
+ XHD_RES = DFFE( PW_GOOD $  GND,  SINC_V,  EPM_RES,  VCC,  VCC);
+
+-- Node name is 'XHD_WR' = ':218' from file "sp2_max_dx.tdf" line 493, column 27
+-- Equation name is 'XHD_WR', type is output 
+ XHD_WR  = DFFE( _EQ048 $  VCC,  10K_CLK,  VCC, !_EQ049,  VCC);
+  _EQ048 = !FDD_C1 &  HDD_C0 & !HDD_C1 &  HDD_C2;
+  _EQ049 =  _X027;
+  _X027  = EXP( /CONF_X &  HDD_C0);
+
+-- Node name is 'XHD1_CS1' = ':220' from file "sp2_max_dx.tdf" line 504, column 20
+-- Equation name is 'XHD1_CS1', type is output 
+ XHD1_CS1 = DFFE( _EQ050 $  VCC,  TG42_IN,  VCC,  /CONF_X,  VCC);
+  _EQ050 =  /CONF_X & !HDD_C1 &  HDD_C2 & !HDD_C3 &  _X028 &  _X029 &  _X030 & 
+              _X031;
+  _X028  = EXP( /CONF_X &  _X029 &  _X030 &  _X032 &  _X033);
+  _X029  = EXP( FDD_C0 & !FDD_C1 & !FDD_C2 &  HDD_C0 &  HDD_C1 & !HDD_C2 & 
+              HDD_C3);
+  _X030  = EXP( _X028 &  _X031 &  _X032 &  _X033);
+  _X031  = EXP( FDD_C0 & !FDD_C1 & !FDD_C2 &  HDD_C0 &  HDD_C1 & !HDD_C2 & 
+             !HDD_C3);
+  _X032  = EXP( /CONF_X &  _X028 &  _X029 &  _X030 &  _X031);
+  _X033  = EXP(!FDD_C0 & !FDD_C1 & !FDD_C2 &  HDD_C0 &  HDD_C1 & !HDD_C2 & 
+             !HDD_C3);
+
+-- Node name is 'XHD1_CS2' = ':221' from file "sp2_max_dx.tdf" line 505, column 20
+-- Equation name is 'XHD1_CS2', type is output 
+ XHD1_CS2 = DFFE( _EQ051 $  VCC,  TG42_IN,  VCC,  /CONF_X,  VCC);
+  _EQ051 =  /CONF_X & !HDD_C1 &  HDD_C2 &  HDD_C3 &  _X028 &  _X029 &  _X030 & 
+              _X031;
+  _X028  = EXP( /CONF_X &  _X029 &  _X030 &  _X032 &  _X033);
+  _X029  = EXP( FDD_C0 & !FDD_C1 & !FDD_C2 &  HDD_C0 &  HDD_C1 & !HDD_C2 & 
+              HDD_C3);
+  _X030  = EXP( _X028 &  _X031 &  _X032 &  _X033);
+  _X031  = EXP( FDD_C0 & !FDD_C1 & !FDD_C2 &  HDD_C0 &  HDD_C1 & !HDD_C2 & 
+             !HDD_C3);
+  _X032  = EXP( /CONF_X &  _X028 &  _X029 &  _X030 &  _X031);
+  _X033  = EXP(!FDD_C0 & !FDD_C1 & !FDD_C2 &  HDD_C0 &  HDD_C1 & !HDD_C2 & 
+             !HDD_C3);
+
+-- Node name is 'XHD2_CS1' = ':222' from file "sp2_max_dx.tdf" line 509, column 20
+-- Equation name is 'XHD2_CS1', type is output 
+ XHD2_CS1 = DFFE( _EQ052 $  VCC,  TG42_IN,  VCC,  /CONF_X,  VCC);
+  _EQ052 =  /CONF_X & !HDD_C1 &  HDD_C2 & !HDD_C3 &  _X029 &  _X030 &  _X032 & 
+              _X033;
+  _X029  = EXP( FDD_C0 & !FDD_C1 & !FDD_C2 &  HDD_C0 &  HDD_C1 & !HDD_C2 & 
+              HDD_C3);
+  _X030  = EXP( _X028 &  _X031 &  _X032 &  _X033);
+  _X032  = EXP( /CONF_X &  _X028 &  _X029 &  _X030 &  _X031);
+  _X033  = EXP(!FDD_C0 & !FDD_C1 & !FDD_C2 &  HDD_C0 &  HDD_C1 & !HDD_C2 & 
+             !HDD_C3);
+  _X028  = EXP( /CONF_X &  _X029 &  _X030 &  _X032 &  _X033);
+  _X031  = EXP( FDD_C0 & !FDD_C1 & !FDD_C2 &  HDD_C0 &  HDD_C1 & !HDD_C2 & 
+             !HDD_C3);
+
+-- Node name is 'XHD2_CS2' = ':223' from file "sp2_max_dx.tdf" line 510, column 20
+-- Equation name is 'XHD2_CS2', type is output 
+ XHD2_CS2 = DFFE( _EQ053 $  VCC,  TG42_IN,  VCC,  /CONF_X,  VCC);
+  _EQ053 =  /CONF_X & !HDD_C1 &  HDD_C2 &  HDD_C3 &  _X029 &  _X030 &  _X032 & 
+              _X033;
+  _X029  = EXP( FDD_C0 & !FDD_C1 & !FDD_C2 &  HDD_C0 &  HDD_C1 & !HDD_C2 & 
+              HDD_C3);
+  _X030  = EXP( _X028 &  _X031 &  _X032 &  _X033);
+  _X032  = EXP( /CONF_X &  _X028 &  _X029 &  _X030 &  _X031);
+  _X033  = EXP(!FDD_C0 & !FDD_C1 & !FDD_C2 &  HDD_C0 &  HDD_C1 & !HDD_C2 & 
+             !HDD_C3);
+  _X028  = EXP( /CONF_X &  _X029 &  _X030 &  _X032 &  _X033);
+  _X031  = EXP( FDD_C0 & !FDD_C1 & !FDD_C2 &  HDD_C0 &  HDD_C1 & !HDD_C2 & 
+             !HDD_C3);
+
+-- Node name is '10K_CLK' = ':194' from file "sp2_max_dx.tdf" line 350, column 13
+-- Equation name is '10K_CLK', type is output 
+ 10K_CLK = DFFE( _EQ054 $ !CNF_OFF,  TG42_IN,  VCC,  VCC,  VCC);
+  _EQ054 =  CNF_OFF & !/MREQ & !/WR
+         # !CNF_OFF & !FDD_C2 & !HDD_C0;
+
+-- Node name is '10K_D0' = ':195' from file "sp2_max_dx.tdf" line 352, column 12
+-- Equation name is '10K_D0', type is output 
+ 10K_D0  = DFFE( _EQ055 $  GND,  10K_CLK, !_EQ056, !_EQ057,  VCC);
+  _EQ055 =  CNF_OFF &  D0
+         # !CNF_OFF &  10K_D0;
+  _EQ056 = !FDD_C0 & !FDD_C1 & !FDD_C2 &  HDD_C0 & !HDD_C1 & !HDD_C2 & 
+             !HDD_C3;
+  _EQ057 =  _X034;
+  _X034  = EXP( /CONF_X &  _X035);
+  _X035  = EXP( FDD_C0 & !FDD_C1 & !FDD_C2 &  HDD_C0 & !HDD_C1 & !HDD_C2 & 
+             !HDD_C3);
+
+-- Node name is '/CONF_X' = '/RESET' from file "sp2_max_dx.tdf" line 181, column 12
+-- Equation name is '/CONF_X', location is LC085, type is bidir.
+/CONF_X  = OPNDRN(/RESET);
+/RESET   = DFFE( _EQ058 $  GND, !AUD, !_EQ059,  VCC,  VCC);
+  _EQ058 =  EPM_RES &  XHD_RES;
+  _EQ059 = !FDD_C0 & !FDD_C1 & !FDD_C2 &  HDD_C0 &  HDD_C1 & !HDD_C2 & 
+              HDD_C3;
+
+-- Node name is '/WG_RD' = ':212' from file "sp2_max_dx.tdf" line 456, column 12
+-- Equation name is '/WG_RD', type is output 
+ /WG_RD  = DFFE( _EQ060 $  VCC,  10K_CLK,  VCC,  FDD_C2,  VCC);
+  _EQ060 = !FDD_C0 &  FDD_C1 & !HDD_C0 & !HDD_C1 & !HDD_C2 & !HDD_C3;
+
+-- Node name is '/WG_WR' = ':211' from file "sp2_max_dx.tdf" line 455, column 12
+-- Equation name is '/WG_WR', type is output 
+ /WG_WR  = DFFE( _EQ061 $  VCC,  10K_CLK,  VCC,  FDD_C2,  VCC);
+  _EQ061 = !FDD_C0 & !FDD_C1 & !HDD_C0 & !HDD_C1 & !HDD_C2 & !HDD_C3;
+
+-- Node name is ':192' from file "sp2_max_dx.tdf" line 336, column 28
+-- Equation name is '_LC020', type is buried 
+_LC020   = DFFE( _EQ062 $  GND,  _EQ063,  VCC,  VCC,  VCC);
+  _EQ062 =  _X016;
+  _X016  = EXP( _X012 &  _X017);
+  _X012  = EXP( _X015 &  _X016);
+  _X017  = EXP( RDAT &  _X013 &  _X014);
+  _X015  = EXP(!RDAT &  _X013 &  _X014);
+  _X013  = EXP( CT0 & !10K_D0);
+  _X014  = EXP( XCT1 &  10K_D0);
+  _EQ063 =  _X018;
+  _X018  = EXP( _X013 &  _X014);
+  _X013  = EXP( CT0 & !10K_D0);
+  _X014  = EXP( XCT1 &  10K_D0);
+
+
+
+--     Shareable expanders that are duplicated in multiple LABs:
+--    _X005 occurs in LABs C, G
+--    _X013 occurs in LABs B, C
+--    _X014 occurs in LABs B, C
+--    _X018 occurs in LABs B, C
+
+
+
+
+Project Information     c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+
+** TIMING ASSIGNMENTS **
+
+
+INFORMATION: One or more paths have been found between register controlled by different clocks--can't calculate fmax for those paths 
+
+                         User       Actual 
+Type  Location        Assignment    Value     Status   Critical Path
+
+fmax  <default>       100.00 MHz  43.47 MHz   Failed   RSTB to register STWG2.Q to register STWG0.Q
+fmax  <default>       100.00 MHz  43.47 MHz   Failed   STE to register STWG2.Q to register STWG0.Q
+fmax  <default>       100.00 MHz  27.02 MHz   Failed   TG42_IN to register SINC_HT.Q to register /RESET.Q
+fmax  <default>       100.00 MHz  43.47 MHz   Failed   WSTB to register STWG2.Q to register STWG0.Q
+
+
+Project Information     c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.rpt
+
+** COMPILATION SETTINGS & TIMES **
+
+Processing Menu Commands
+------------------------
+
+Design Doctor                             = off
+
+Logic Synthesis:
+
+   Synthesis Type Used                    = Standard
+
+   Default Synthesis Style                = NORMAL
+
+      Logic option settings in 'NORMAL' style for 'MAX7000S' family
+
+      DECOMPOSE_GATES                     = on
+      DUPLICATE_LOGIC_EXTRACTION          = on
+      MINIMIZATION                        = full
+      MULTI_LEVEL_FACTORING               = on
+      NOT_GATE_PUSH_BACK                  = on
+      PARALLEL_EXPANDERS                  = off
+      REDUCE_LOGIC                        = on
+      REFACTORIZATION                     = on
+      REGISTER_OPTIMIZATION               = on
+      RESYNTHESIZE_NETWORK                = on
+      SLOW_SLEW_RATE                      = off
+      SOFT_BUFFER_INSERTION               = on
+      SUBFACTOR_EXTRACTION                = on
+      TURBO_BIT                           = on
+      XOR_SYNTHESIS                       = on
+      IGNORE_SOFT_BUFFERS                 = off
+      USE_LPM_FOR_AHDL_OPERATORS          = off
+
+   Other logic synthesis settings:
+
+      Automatic Global Clock              = off
+      Automatic Global Clear              = off
+      Automatic Global Preset             = on
+      Automatic Global Output Enable      = on
+      Automatic Fast I/O                  = off
+      Automatic Register Packing          = off
+      Automatic Open-Drain Pins           = on
+      Automatic Implement in EAB          = off
+      One-Hot State Machine Encoding      = off
+      Optimize                            = 5
+
+Default Timing Specifications: 
+
+   fmax                                   = 100MHz
+
+Cut All Bidir Feedback Timing Paths       = on
+Cut All Clear & Preset Timing Paths       = on
+
+Ignore Timing Assignments                 = off
+
+Functional SNF Extractor                  = off
+
+Linked SNF Extractor                      = off
+Timing SNF Extractor                      = on
+Optimize Timing SNF                       = off
+Generate AHDL TDO File                    = off
+Fitter Settings                           = ADVANCED
+Smart Recompile                           = off
+Total Recompile                           = off
+
+Interfaces Menu Commands
+------------------------
+
+EDIF Netlist Writer                       = off
+Verilog Netlist Writer                    = off
+VHDL Netlist Writer                       = off
+
+Compilation Times
+-----------------
+
+   Compiler Netlist Extractor             00:00:00
+   Database Builder                       00:00:00
+   Logic Synthesizer                      00:00:00
+   Partitioner                            00:00:00
+   Fitter                                 00:00:00
+   Timing SNF Extractor                   00:00:00
+   Assembler                              00:00:01
+   --------------------------             --------
+   Total Time                             00:00:01
+
+
+Memory Allocated
+-----------------
+
+Peak memory allocated during compilation  = 3,671K

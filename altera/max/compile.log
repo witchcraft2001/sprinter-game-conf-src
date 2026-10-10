@@ -1,0 +1,211 @@
+Вс, 14:29: [2/2] ALTERA MAX-DX-7128 STREAM 
+7128\SP2_MAX.ACF
+7128\SP2_MAX_DX.ACF
+Скопировано файлов:         2.
+
+**********************************************************************
+MAX+plus II
+Version 10.0 9/14/2000
+Copyright (c) 1988-2000 Altera Corporation. All rights reserved.
+
+This material is made available for use under a license from Altera
+and its use is subject to all conditions and restrictions provided
+by the license agreement.  U.S. and foreign patents apply to the
+software program and the semiconductor components which are programmed
+using the software program.
+
+This program, these components, and the system comprising both
+are covered by one or more of the following U.S. patents:
+
+6,097,211; 6,094,064; 6,091,258; 6,091,102; 6,085,317; 6,084,427;
+6,081,449; 6,080,204; 6,078,521; 6,076,179; 6,075,380; 6,072,358;
+6,072,332; 6,069,487; 6,066,960; 6,064,599; 6,060,903; 6,058,452;
+6,057,707; 6,052,755; 6,052,309; 6,052,327; 6,049,223; 6,049,225;
+6,045,252;  6,043,676; 6,040,712; 6,038,171; 6,037,829; 6,034,857;
+6,034,540; 6,034,536; 6,032,159; 6,031,763; 6,031,391; 6,029,236;
+6,028,809; 6,028,808; 6,028,787; 6,026,226; 6,025,737; 6,023,439;
+6,020,760; 6,020,759; 6,020,758; 6,018,490; 6,018,476; 6,014,334;
+6,011,744; 6,011,730; 6,011,406; 6,005,379; 5,999,016; 5,999,015;
+5,998,295; 5,996,039; 5,986,470; 5,986,465; 5,983,277; 5,982,195;
+5,978,476; 5,977,793; 5,977,791; 5,968,161; 5,970,255; 5,966,597;
+5,963,565; 5,969,051; 5,963,069; 5,963,049; 5,959,891; 5,953;537;
+5,949,991; 5,949,710; 5,949,250; 5,949,239; 5,954,751; 5,943,267;
+5,942,914; 5,940,852; 5,939,790; 5,936,425; 5,926,036; 5,925,904;
+5,923,567; 5,915,756; 5,915,017; 5,909,450; 5,909,375; 5,909,126;
+5,905,675; 5,904,524; 5,900,743; 5,898,628; 5,898,318; 5,894,228;
+5,893,088; 5,892,683; 5,883,526; 5,880,725; 5,880,597; 5,880,596;
+5,878,250; 5,875,112; 5,873,113; 5,872,529; 5,872,463; 5,870,410;
+5,869,980; 5,869,979; 5,861,760; 5,859,544; 5,859,542; 5,850,365;
+5,850,152; 5,850,151; 5,848,005; 5,847,617; 5,845,385; 5,844,854;
+RE35,977; 5,838,628; 5,838,584; 5,835,998; 5,834,849; 5,828,229;
+5,825,197; 5,821,787: 5,821,773; 5,821,771; 5,815,726; 5,815,024;
+5,815,003; 5,812,479; 5,812,450; 5,809,281; 5,809,034; 5,805,516;
+5,802,540; 5,801,541; 5,796,267; 5,793,246; 5,790,469; 5,787,009;
+5,771,264; 5,768,562; 5,768,372; 5,767,734; 5,764,583; 5,764,569;
+5,764,080; 5,764,079; 5,761,099; 5,760,624; 5,757,207; 5,757,070;
+5,744,991; 5,744,383; 5,740,110; 5,732,020; 5,729,495; 5,717,901;
+5,705,939; 5,699,020; 5,699,312; 5,696,455; 5,693,540; 5,694,058;
+5,691,653; 5,689,195; 5,668,771; 5,680,061; 5,672,985; 5,670,895;
+5,659,717; 5,650,734; 5,649,163; 5,642,262; 5,642,082; 5,633,830;
+5,631,576; 5,621,312; 5,614,840; 5,612,642; 5,608,337; 5,606,276;
+5,606,266; 5,604,453; 5,598,109; 5,598,108; 5,592,106; 5,592,102;
+5,590,305; 5,583,749; 5,581,501; 5,574,893; 5,572,717; 5,572,148;
+5,572,067; 5,570,040; 5,567,177; 5,565,793; 5,563,592; 5,561,757;
+5,557,217; 5,555,214; 5,550,842; 5,550,782; 5,548,552; 5,548,228;
+5,543,732; 5,543,730; 5,541,530; 5,537,295; 5,537,057; 5,525,917;
+5,525,827; 5,523,706; 5,523,247; 5,517,186; 5,498,975; 5,495,182;
+5,493,526; 5,493,519; 5,490,266; 5,488,586; 5,487,143; 5,486,775;
+5,485,103; 5,485,102; 5,483,178; 5,477,474; 5,473,266; 5,463,328,
+5,444,394; 5,438,295; 5,436,575; 5,436,574; 5,434,514; 5,432,467;
+5,414,312; 5,399,922; 5,384,499; 5,376,844; 5,371,422; 5,369,314;
+5,359,243; 5,359,242; 5,353,248; 5,352,940; 5,309,046; 5,350,954;
+5,349,255; 5,341,308; 5,341,048; 5,341,044; 5,329,487; 5,317,210;
+5,315,172; 5,301,416; 5,294,975; 5,285,153; 5,280,203; 5,274,581;
+5,272,368; 5,268,598; 5,266,037; 5,260,611; 5,260,610; 5,258,668;
+5,247,478; 5,247,477; 5,243,233; 5,241,224; 5,237,219; 5,220,533;
+5,220,214; 5,200,920; 5,187,392; 5,166,604; 5,162,680; 5,144,167;
+5,138,576; 5,128,565; 5,121,006; 5,111,423; 5,097,208; 5,091,661;
+5,066,873; 5,045,772; 4,969,121; 4,930,107; 4,930,098; 4,930,097;
+4,912,342; 4,903,223; 4,899,070; 4,899,067; 4,871,930; 4,864,161;
+4,831,573; 4,785,423; 4,774,421; 4,713,792; 4,677,318; 4,617,479;
+4,609,986; 4,020,469; Additional patents are pending.
+
+Altera Corporation acknowledges the trademarks of other organizations
+for their respective products or services mentioned in this software.
+
+**********************************************************************
+Compiling project c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx ....
+
+**** Compiler Netlist Extractor  ****
+
+Processing .                                        --   0% done
+Warning: Line 105, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED61" was declared but never used
+Warning: Line 110, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED78" was declared but never used
+Warning: Line 89, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED33" was declared but never used
+Warning: Line 111, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED84" was declared but never used
+Warning: Line 112, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED85" was declared but never used
+Warning: Line 93, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED7" was declared but never used
+Warning: Line 83, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "XHR_RDY" was declared but never used
+Warning: Line 107, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED70" was declared but never used
+Warning: Line 95, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED21" was declared but never used
+Warning: Line 104, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED55" was declared but never used
+Warning: Line 92, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED5" was declared but never used
+Warning: Line 96, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED22" was declared but never used
+Warning: Line 91, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED2" was declared but never used
+Warning: Line 101, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED49" was declared but never used
+Warning: Line 108, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED72" was declared but never used
+Warning: Line 103, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED53" was declared but never used
+Warning: Line 97, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED23" was declared but never used
+Warning: Line 98, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED24" was declared but never used
+Warning: Line 106, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED69" was declared but never used
+Warning: Line 102, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED50" was declared but never used
+Warning: Line 88, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED65" was declared but never used
+Warning: Line 90, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED1" was declared but never used
+Warning: Line 109, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED77" was declared but never used
+Warning: Line 99, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED27" was declared but never used
+Warning: Line 94, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED17" was declared but never used
+Warning: Line 100, File c:\prj\sprinter\firmware\src\altera\max\sp2_max_dx.tdf:
+Symbolic name "UNUSED28" was declared but never used
+Processing ..                                       -- 100% done
+Warning: Timing requirement assignments influence compilation only for FLEX 6000, FLEX 8000, and FLEX 10K devices. However, the Compiler will check whether it can meet your timing requirements.
+
+**** Database Builder  ****
+
+Processing .                                        --   0% done
+Processing ..                                       -- 100% done
+
+**** Logic Synthesizer  ****
+
+Processing .                                        --   0% done
+Warning: Flipflop 'CTV8M' stuck at GND
+Warning: No Clock transition on flipflop 'CNF_OFF'
+Warning: Primitive 'DENS_X' is stuck at VCC
+Warning: Primitive 'HD_CS' is stuck at GND
+Info: NOT Gate Push-Back has occurred on some registers -- if the power-up condition is crucial to the operation of the circuit, use the asynchronous Clear/Preset on the register to ensure proper operation
+Processing ..                                       -- 100% done
+
+**** Partitioner  ****
+
+Processing .                                        --   0% done
+Warning: Project has user pin or logic cell assignments, but has never been compiled before. For best fitting results, let the Compiler choose the first set of assignments instead.
+Info: Reserved unused input pin 'XHR_RDY' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED65' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED33' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED1' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED2' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED5' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED7' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED17' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED21' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED22' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED23' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED24' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED27' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED28' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED49' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED50' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED53' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED55' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED61' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED69' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED70' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED72' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED77' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED78' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED84' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Info: Reserved unused input pin 'UNUSED85' for future use because it has a pin assignment -- pin is tri-stated and must be connected to your board
+Processing ..                                       -- 100% done
+
+**** Fitter  ****
+
+Processing .                                        --   0% done
+Info: Chip 'SP2_MAX_DX' in device 'EPM7128STC100-10' has less than 20% of pins available for future logic changes -- if your project is likely to change, Altera recommends using a larger device
+Processing ..                                       -- 100% done
+
+**** Timing SNF Extractor  ****
+
+Processing .                                        --   0% done
+Processing ..                                       -- 100% done
+Warning: Found ripple clock -- warning messages and Report File information on tco, tsu, and fmax may be inaccurate
+Info: One or more paths have been found between registers controlled by different clocks -- can't calculate fmax for those paths
+Warning: Can't provide fmax of 100.00 MHz on Clock pin "RSTB". Current fmax is 43.47 MHz.
+Warning: Can't provide fmax of 100.00 MHz on Clock pin "STE". Current fmax is 43.47 MHz.
+Warning: Can't provide fmax of 100.00 MHz on Clock pin "TG42_IN". Current fmax is 27.02 MHz.
+Warning: Can't provide fmax of 100.00 MHz on Clock pin "WSTB". Current fmax is 43.47 MHz.
+Info: Found a total of 4 timing assignments that were not implemented
+Project compilation was successful
+      0 errors
+     36 warnings
+Не удается найти C:\prj\Sprinter\firmware\src\altera\max\*.txt
+Не удается найти C:\prj\Sprinter\firmware\src\altera\max\*.bak
+Не удается найти C:\prj\Sprinter\firmware\src\altera\max\*.db?
+Не удается найти C:\prj\Sprinter\firmware\src\altera\max\*.mtb
+Не удается найти C:\prj\Sprinter\firmware\src\altera\max\*.hex
+Не удается найти C:\prj\Sprinter\firmware\src\altera\max\*.SCF
+Не удается найти C:\prj\Sprinter\firmware\src\altera\max\*.INC
+Не удается найти C:\prj\Sprinter\firmware\src\altera\max\*.MIF
