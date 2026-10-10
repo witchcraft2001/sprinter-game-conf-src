@@ -111,7 +111,8 @@ class ReadProgram:
             self.widths[name] = int(high)+1 if high else 1
             if name.startswith('G_') or name.startswith('MODE') or name in ('VLA', 'TSN_W3'):
                 if kind in ('DFF','DFFE'): self.registers.add(name)
-        read = clean[clean.index('IF (CTH[] == 55)'):clean.index('\n\tV_WE_R\t\t= DFF')]
+        start_read = 'G_ADVANCE_Y =' if 'G_ADVANCE_Y =' in clean else 'IF (CTH[] == 55)'
+        read = clean[clean.index(start_read):clean.index('\n\tV_WE_R\t\t= DFF')]
         # Clock assignments for the address and external RGB strobe occur
         # in the shared preamble, outside the interpreted read region.
         for name in ('VLA', 'TSN_W3'):

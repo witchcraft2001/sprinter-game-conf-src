@@ -46,10 +46,23 @@ try {
                 assert.ok(devices.every(line => line.includes('EP1' + chip + 'QC208-3;')));
             }
             assert.ok(!io.exists(work + '/SP2_ACEX.ttf'));
-            assert.strictEqual(io.readText(work + '/VIDEO2.TDF'), io.readText(root + '/altera/acex/' + (variant === 'STANDARD_K50' ? 'K50' : 'GAME_K50') + '/VIDEO2.TDF'));
+            const video = io.readText(root + '/altera/acex/' + (variant === 'STANDARD_K50' ? 'K50' : 'GAME_K50') + '/VIDEO2.TDF');
+            assert.strictEqual(io.readText(work + '/VIDEO2.TDF'), variant === 'STANDARD_K50' ? video : build.transformGameVideo(video, variant));
             assert.throws(() => build.prepare(io, root + '/altera/acex', work, variant), /already exists/);
         });
     }
+    test('target scroll stages preserve the complete bus and write pipeline', () => {
+        const common = io.readText(root + '/altera/acex/GAME_K50/VIDEO2.TDF');
+        assert.strictEqual(build.transformGameVideo(common, 'GAME_K30'), common);
+        const k50 = build.transformGameVideo(common, 'GAME_K50');
+        assert.ok(k50.includes('G_EFFECTIVE[7..0] : DFFE;'));
+        assert.ok(!k50.includes('G_EFFECTIVE_X'));
+        const withoutScrollStage = t => t.replace(/G_EFFECTIVE\[7\.\.0\][\s\S]*?(?=G_LOCAL_X)/, '')
+            .replace(/G_EFFECTIVE(?:_X)?\[\]\.clk[\s\S]*?(?=G_SCROLL\[\]\.clk)/, '');
+        assert.strictEqual(withoutScrollStage(k50), withoutScrollStage(common));
+        assert.throws(() => build.transformGameVideo(common.replace('G_EFFECTIVE_X[3..0] : DFFE;', ''), 'GAME_K50'), /review K50/);
+        assert.throws(() => build.transformGameVideo(common, 'STANDARD_K50'), /Standard/);
+    });
     test('valid packaging and variant gating', () => {
         const work = temp + '/GAME_K50'; fixture(work);
         assert.throws(() => build.verifyDirectory(io, work, 'STANDARD_K50'), /Variant mismatch/);

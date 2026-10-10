@@ -97,6 +97,7 @@ VARIABLE
 
 	E_WR		: NODE;
 	E_WRD		: NODE;
+	G_WRITE_CAPTURE : NODE;
 
 	BLANK		: NODE;
 	BORD		: NODE;
@@ -168,12 +169,13 @@ VARIABLE
 	MODE2[7..0]		: DFFE;
 	MODE3[7..0] : DFFE;
 	-- Game read pipeline. Physical CT/CTH/CTV remain unchanged.
-	G_NEXT_X[8..0] : NODE;
-	G_NEXT_Y[8..0] : NODE;
-	G_SUM_X[9..0] : NODE;
-	G_SUM_Y[9..0] : NODE;
-	G_X[8..0] : NODE;
-	G_Y[8..0] : NODE;
+	G_LOW_X[4..0] : NODE;
+	G_LOW_Y[4..0] : NODE;
+	G_ADVANCE_Y : NODE;
+	G_SUM_X[9..0] : DFFE;
+	G_SUM_Y[9..0] : DFFE;
+	G_X[8..0] : DFFE;
+	G_Y[8..0] : DFFE;
 	G_SCROLL[7..0] : DFFE;
 	G_REQUEST[15..0] : DFFE;
 	G_LAST[15..0] : DFFE;
@@ -181,13 +183,17 @@ VARIABLE
 	G_PENDING_VALID : DFFE;
 	G_APPLY : NODE;
 	G_EFFECTIVE[7..0] : NODE;
+	G_EFFECTIVE_X[3..0] : DFFE;
+	G_EFFECTIVE_Y[3..0] : NODE;
 	G_LOCAL_X[2..0] : DFFE;
 	G_LOCAL_Y[2..0] : DFFE;
-	G_YBASE[7..0] : NODE;
+	G_YBASE[7..0] : DFFE;
+	G_PIXEL_X[10..0] : DFFE;
 	G_ADDRESS[17..0] : NODE;
 	G_COLOR[7..0] : DFFE;
 	G_PAL[1..0] : DFFE;
 	G_BORDER : DFFE;
+	G_BORDER_RGB[2..0] : DFFE;
 	G_BLANK : DFFE;
 	G_IRQ : DFFE;
 	G_ACCEPT : NODE;
@@ -195,6 +201,16 @@ VARIABLE
 	G_SAMPLE : NODE;
 	G_INDEX[7..0] : NODE;
 	G_PALETTE[10..0] : NODE;
+	G_SLOT_PIXEL : DFF;
+	G_SLOT_PALETTE : DFF;
+	G_SLOT_CPU : DFF;
+	G_SLOT_ISSUE : DFF;
+	G_SLOT_HOLD : DFF;
+	G_BUS_PIXEL[17..0] : NODE;
+	G_BUS_PALETTE[17..0] : NODE;
+	G_BUS_CPU[17..0] : NODE;
+	G_BUS_ISSUE[17..0] : NODE;
+	G_BUS_HOLD[17..0] : NODE;
 
 
 --	M_CTV[2..0]	: DFF;
@@ -356,8 +372,8 @@ BEGIN
 --	WR_PIX	= LCELL(TSN_W3);
 	WR_PIX	= TSN_W3;
 
-	DOUBLE.clk = CLK42; DOUBLE.ena = !E_WR; DOUBLE	= DOUBLE_CAS;
-	VXA[].clk  = CLK42; VXA[].ena  = !E_WR;
+	DOUBLE.clk = CLK42; DOUBLE.ena = G_WRITE_CAPTURE; DOUBLE	= DOUBLE_CAS;
+	VXA[].clk  = CLK42; VXA[].ena  = G_WRITE_CAPTURE;
 
 	VXD0[].clk = CLK42; VXD0[].ena = !E_WRD;	VDO0[]	= VXD0[];
 	VXD1[].clk = CLK42; VXD1[].ena = !E_WRD;	VDO1[]	= VXD1[];
@@ -382,11 +398,15 @@ BEGIN
 	VLA[].clk	= CLK42;
 
 	SCR_ENA.clk	= CLK42;
-	SCR_ENA.ena	= !E_WR;
+	SCR_ENA.ena	= G_WRITE_CAPTURE;
 	SCR_ENA.d	= !(VAI19 or ZX_SCREEN);
 
 	E_WRD	= DFF(E_WR,CLK42,,);
-	E_WR = LCELL(WR or !(VAI19 or ZX_SCREEN) or !DFF(WR,CLK42,,));
+	-- Same write-capture truth table, expressed in its active polarity.
+	-- Do not force an LCELL followed by a high-fanout inverter on the
+	-- half-cycle path from the falling-edge WR register to rising-edge VXA.
+	G_WRITE_CAPTURE = !WR & (VAI19 or ZX_SCREEN) & DFF(WR,CLK42,,);
+	E_WR = !G_WRITE_CAPTURE;
 --	E_WR = LCELL(WR or !DFF(WR,CLK42,,));
 
 --	****************************************************
@@ -428,28 +448,23 @@ IF MODE == "SPRINTER" GENERATE
 	-- two full periods; keep the CPU/write slot at CT=5 / VCM=2.
 	CASE VCM[] IS
 		WHEN 0 => -- CT=6: palette for the sampled pixel
-			VLA[].d = (G_PALETTE[7..0],VCC,VCC,VCC,VCC,VCC,G_PALETTE[10..8],GND,GND);
 			V_CST[].d = (VCC,GND);
 			V_WE.d = VCC;
 			V_WEX.d = VCC;
 		WHEN 1,5 => -- CT=0,1: issue/hold the same pixel address
-			VLA[].d = G_ADDRESS[];
 			V_CST[].d = (VCC,GND);
 			V_WE.d = VCC;
 			V_WEX.d = VCC;
 		WHEN 2 => -- CT=5: unchanged CPU/accelerator window
-			VLA[].d = VXA[17..0];
 			V_CST[].d = (!VXA18,VXA18) or MXWE;
 			V_WE.d = MXWE;
 			V_WEX.d = GND;
 			V_WET[].d = MXWE or !((!VXA1 & !VXA0),(!VXA1 & VXA0),(VXA1 & !VXA0),(VXA1 & VXA0));
 		WHEN 3 => -- CT=4: hold the REGISTERED descriptor request
-			VLA[].d = (G_REQUEST[],GND,GND);
 			V_CST[].d = (VCC,GND);
 			V_WE.d = VCC;
 			V_WEX.d = VCC;
 		WHEN 4 => -- CT=2: sample color, issue next descriptor
-			VLA[].d = (DIR_PORT3,G_X[8..3],VCC,VCC,VCC,G_Y[8..3],GND,GND);
 			V_CST[].d = (VCC,GND);
 			V_WE.d = VCC;
 			V_WEX.d = VCC;
@@ -474,23 +489,26 @@ IF MODE == "SPRINTER" GENERATE
 
 --	=====================
 
-	-- Prefetch the next physical byte; scroll offsets fetch coordinates only.
-	IF (CTH[] == 55) & (CT[5..3] == 7) THEN
-		G_NEXT_X[] = 0;
-	ELSE
-		G_NEXT_X[] = (CTH[],CT[5..3]) + 1;
-	END IF;
-	IF (CTH[] == 48) & (CT[5..3] == 7) THEN
-		IF CTV[] == 319 THEN G_NEXT_Y[] = 0;
-		ELSE G_NEXT_Y[] = CTV[] + 1;
-		END IF;
-	ELSE G_NEXT_Y[] = CTV[];
-	END IF;
-	G_SUM_X[] = (GND,G_NEXT_X[]) + (B"000000",G_EFFECTIVE[3..0]);
-	G_SUM_Y[] = (GND,G_NEXT_Y[]) + (B"000000",G_EFFECTIVE[7..4]);
-	IF G_SUM_X[] >= 448 THEN G_X[] = G_SUM_X[8..0] - 448;
+	-- Add physical advance and scroll BEFORE wrapping. Splitting at the
+	-- low bits avoids two serial nine-bit adders and the intermediate
+	-- physical-wrap mux. At x=447/y=319 the final wrap also wraps advance.
+	G_ADVANCE_Y = (CTH[] == 48) & (CT[5..3] == 7);
+	G_LOW_X[] = (B"00",CT[5..3]) + (GND,G_EFFECTIVE[3..0]) + B"00001";
+	G_LOW_Y[] = (GND,CTV[3..0]) + (GND,G_EFFECTIVE[7..4]) + (B"0000",G_ADVANCE_Y);
+	-- CT=0: coordinate addition. CT=1: wrap. CT=2: issue descriptor.
+	-- Physical coordinates are stable throughout CT=0..2; pending scroll
+	-- was captured at CT=5 and applies to the next cell's first request.
+	G_SUM_X[].clk = CLK42; G_SUM_Y[].clk = CLK42;
+	G_SUM_X[].ena = (VCM[] == 5); G_SUM_Y[].ena = (VCM[] == 5);
+	G_SUM_X[] = (GND,CTH[] + (B"0000",G_LOW_X[4..3]),G_LOW_X[2..0]);
+	G_SUM_Y[] = (GND,CTV[8..4] + (B"0000",G_LOW_Y[4]),G_LOW_Y[3..0]);
+	G_X[].clk = CLK42; G_Y[].clk = CLK42;
+	G_X[].ena = (VCM[] == 1); G_Y[].ena = (VCM[] == 1);
+	-- 448 and 320 are multiples of 64. Wrap only the upper three bits;
+	-- the low six bits never need a subtractor or its carry chain.
+	IF G_SUM_X[] >= 448 THEN G_X[] = (B"000",G_SUM_X[5..0]);
 	ELSE G_X[] = G_SUM_X[8..0]; END IF;
-	IF G_SUM_Y[] >= 320 THEN G_Y[] = G_SUM_Y[8..0] - 320;
+	IF G_SUM_Y[] >= 320 THEN G_Y[] = (G_SUM_Y[8..6] - B"101",G_SUM_Y[5..0]);
 	ELSE G_Y[] = G_SUM_Y[8..0]; END IF;
 
 	G_REQUEST[].clk = CLK42;
@@ -522,16 +540,52 @@ IF MODE == "SPRINTER" GENERATE
 	G_PENDING_VALID.ena = (G_ACCEPT & VDM3[2]) or ((VCM[] == 4) & G_APPLY);
 	G_PENDING_VALID = G_CAPTURE;
 	G_APPLY = G_PENDING_VALID & (G_LOCAL_X[] == 7);
-	IF G_APPLY THEN G_EFFECTIVE[] = G_PENDING[];
-	ELSE G_EFFECTIVE[] = G_SCROLL[]; END IF;
+	-- CT=6: decide the scroll for the request following the upcoming
+	-- pixel. The new descriptor/pending value is already stable after CT=5.
+	-- Common/K30: register X's offset, save four registers and their enables.
+	-- k50_build.js stages the full eight-bit register for GAME_K50, which
+	-- gives better placement/timing there. Both versions use these same slots.
+	G_EFFECTIVE_X[].clk = CLK42; G_EFFECTIVE_X[].ena = (VCM[] == 0);
+	IF G_APPLY THEN
+		G_EFFECTIVE_X[] = G_PENDING[3..0]; G_EFFECTIVE_Y[] = G_PENDING[7..4];
+	ELSE
+		G_EFFECTIVE_X[] = G_SCROLL[3..0]; G_EFFECTIVE_Y[] = G_SCROLL[7..4];
+	END IF;
+	G_EFFECTIVE[] = (G_EFFECTIVE_Y[],G_EFFECTIVE_X[]);
 	G_SCROLL[].clk = CLK42;
 	G_SCROLL[].ena = (VCM[] == 4) & G_APPLY;
 	G_SCROLL[] = G_PENDING[];
 	-- No line/frame reset. A new control replaces a still-pending control.
 
-	-- Unsigned byte Y wraps at 256; X addition can carry into next row.
+	-- CT=6: prepare pixel offsets after descriptor capture at CT=5.
+	-- Split the 18-bit address adder into parallel X/Y sums, then add
+	-- only X's carry to Y at CT=0. Keep arbitrary, unaligned X bases.
+	G_YBASE[].clk = CLK42; G_YBASE[].ena = (VCM[] == 0);
+	G_PIXEL_X[].clk = CLK42; G_PIXEL_X[].ena = (VCM[] == 0);
 	G_YBASE[] = MODE2[] + (B"00000",G_LOCAL_Y[]);
-	G_ADDRESS[] = (G_YBASE[],MODE0[1..0],MODE1[]) + (B"000000000000000",G_LOCAL_X[]);
+	G_PIXEL_X[] = (GND,MODE0[1..0],MODE1[]) + (B"00000000",G_LOCAL_X[]);
+	G_ADDRESS[] = (G_YBASE[] + (B"0000000",G_PIXEL_X[10]),G_PIXEL_X[9..0]);
+	-- Decode the next bus slot alongside VCM, one edge before VLA uses it.
+	-- Independent masks make a shallow one-hot mux, not a VCM decode chain.
+	G_SLOT_PIXEL.clk = CLK42; G_SLOT_PALETTE.clk = CLK42;
+	G_SLOT_CPU.clk = CLK42; G_SLOT_ISSUE.clk = CLK42; G_SLOT_HOLD.clk = CLK42;
+	G_SLOT_PIXEL = (CT[2..0] == 6) or (CT[2..0] == 0);
+	G_SLOT_PALETTE = (CT[2..0] == 5);
+	G_SLOT_CPU = (CT[2..0] == 4);
+	G_SLOT_ISSUE = (CT[2..0] == 1);
+	G_SLOT_HOLD = (CT[2..0] == 2);
+	IF G_SLOT_PIXEL THEN G_BUS_PIXEL[] = G_ADDRESS[];
+	ELSE G_BUS_PIXEL[] = GND; END IF;
+	IF G_SLOT_PALETTE THEN
+		G_BUS_PALETTE[] = (G_PALETTE[7..0],VCC,VCC,VCC,VCC,VCC,G_PALETTE[10..8],GND,GND);
+	ELSE G_BUS_PALETTE[] = GND; END IF;
+	IF G_SLOT_CPU THEN G_BUS_CPU[] = VXA[17..0];
+	ELSE G_BUS_CPU[] = GND; END IF;
+	IF G_SLOT_ISSUE THEN G_BUS_ISSUE[] = (DIR_PORT3,G_X[8..3],VCC,VCC,VCC,G_Y[8..3],GND,GND);
+	ELSE G_BUS_ISSUE[] = GND; END IF;
+	IF G_SLOT_HOLD THEN G_BUS_HOLD[] = (G_REQUEST[],GND,GND);
+	ELSE G_BUS_HOLD[] = GND; END IF;
+	VLA[].d = G_BUS_PIXEL[] or G_BUS_PALETTE[] or G_BUS_CPU[] or G_BUS_ISSUE[] or G_BUS_HOLD[];
 	-- CT=0 and CT=1 hold the same physical SRAM word. Capture at CT=2,
 	-- BEFORE issuing the next descriptor and replacing G_LOCAL_X/Y.
 	G_SAMPLE = (VCM[] == 4);
@@ -545,13 +599,15 @@ IF MODE == "SPRINTER" GENERATE
 	G_PAL[].clk = CLK42; G_PAL[].ena = G_SAMPLE; G_PAL[] = MODE0[7..6];
 	G_BORDER.clk = CLK42; G_BORDER.ena = G_SAMPLE;
 	G_BORDER = (MODE0[7..5] == 7);
+	G_BORDER_RGB[].clk = CLK42; G_BORDER_RGB[].ena = G_SAMPLE;
+	G_BORDER_RGB[] = BRD[];
 	G_BLANK.clk = CLK42; G_BLANK.ena = G_SAMPLE;
 	G_BLANK = ((MODE0[7..5] == 7) & MODE03 & MODE02) or DIR_PORT4;
 	G_IRQ.clk = CLK42; G_IRQ.ena = G_SAMPLE;
 	G_IRQ = (MODE0[7..5] == 7) & MODE03 & MODE02 & MODE00;
 	IF G_BLANK THEN G_PALETTE[] = H"400";
 	ELSE
-		IF G_BORDER THEN G_PALETTE[] = (VCC,B"0000",BRD[],BRD[]);
+		IF G_BORDER THEN G_PALETTE[] = (VCC,B"0000",G_BORDER_RGB[],G_BORDER_RGB[]);
 		ELSE G_PALETTE[] = (GND,G_PAL[],G_COLOR[]); END IF;
 	END IF;
 	-- External RGB registers see ONE rising edge per byte pixel, at CT=0,

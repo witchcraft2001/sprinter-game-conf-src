@@ -43,6 +43,22 @@ var K50Build = (function () {
         }
         return result;
     }
+    function transformGameVideo(text, variant) {
+        target(variant);
+        requireCondition(variant !== 'STANDARD_K50', 'Standard video must not be transformed');
+        if (variant === 'GAME_K30') { return text; }
+        // K30 keeps four scroll-prefetch registers; K50 benefits from eight.
+        // Exact, checked substitutions keep a single common video source and
+        // preserve all bus phases, CPU strobes and physical timing chains.
+        var declarations = /G_EFFECTIVE\[7\.\.0\] : NODE;\s*G_EFFECTIVE_X\[3\.\.0\] : DFFE;\s*G_EFFECTIVE_Y\[3\.\.0\] : NODE;/g;
+        var stage = /G_EFFECTIVE_X\[\]\.clk = CLK42; G_EFFECTIVE_X\[\]\.ena = \(VCM\[\] == 0\);\s*IF G_APPLY THEN\s*G_EFFECTIVE_X\[\] = G_PENDING\[3\.\.0\]; G_EFFECTIVE_Y\[\] = G_PENDING\[7\.\.4\];\s*ELSE\s*G_EFFECTIVE_X\[\] = G_SCROLL\[3\.\.0\]; G_EFFECTIVE_Y\[\] = G_SCROLL\[7\.\.4\];\s*END IF;\s*G_EFFECTIVE\[\] = \(G_EFFECTIVE_Y\[\],G_EFFECTIVE_X\[\]\);/g;
+        requireCondition((text.match(declarations) || []).length === 1 && (text.match(stage) || []).length === 1,
+                         'Game scroll pipeline changed; review K50 staging transform');
+        return text.replace(declarations, 'G_EFFECTIVE[7..0] : DFFE;')
+                   .replace(stage, 'G_EFFECTIVE[].clk = CLK42; G_EFFECTIVE[].ena = (VCM[] == 0);\r\n' +
+                                   '\tIF G_APPLY THEN G_EFFECTIVE[] = G_PENDING[];\r\n' +
+                                   '\tELSE G_EFFECTIVE[] = G_SCROLL[]; END IF;');
+    }
     function compare(a, b, name) {
         requireCondition(a.length === b.length, name + ' length mismatch');
         for (var i = 0; i < a.length; i++) {
@@ -92,10 +108,11 @@ var K50Build = (function () {
                 result = transformAcf(io.readText(source + '/K50/' + name), variant, name);
                 io.writeText(work + '/' + name, result.text);
                 audit = audit.concat(result.audit);
+            } else if (variant !== 'STANDARD_K50' && /^VIDEO2\.TDF$/i.test(name)) {
+                io.writeText(work + '/' + name, transformGameVideo(io.readText(source + '/GAME_K50/VIDEO2.TDF'), variant));
             } else { io.copy(source + '/K50/' + name, work + '/' + name); }
             copied.push(name);
         }
-        if (variant !== 'STANDARD_K50') { io.copy(source + '/GAME_K50/VIDEO2.TDF', work + '/VIDEO2.TDF'); }
         io.writeText(work + '/floorplan-audit.txt', audit.join('\r\n') + '\r\n');
         io.writeText(work + '/variant.txt', variant + '\r\n');
         io.writeText(work + '/source-files.txt', copied.sort().join('\r\n') + '\r\n');
@@ -121,7 +138,7 @@ var K50Build = (function () {
         io.copy(work + '/STREAM50.BIN', target);
         compare(io.readBytes(target), raw, 'Published BIOS stream');
     }
-    return {transformAcf: transformAcf, parseTtf: parseTtf, verify: verify,
+    return {transformAcf: transformAcf, transformGameVideo: transformGameVideo, parseTtf: parseTtf, verify: verify,
             prepare: prepare, verifyDirectory: verifyDirectory,
             publishStandardStream: publishStandardStream};
 }());

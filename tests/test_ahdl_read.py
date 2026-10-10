@@ -73,6 +73,15 @@ class Bench:
             if s: seen.append(s)
         return seen
 
+    def initial_scroll(self, value):
+        self.video.scroll = self.program.state['G_SCROLL'] = value
+        # Nonzero initial offsets are testbench injection, not power-up.
+        # Seed the retained prefetch copy consistently with that injected Q.
+        if 'G_EFFECTIVE' in self.program.state:
+            self.program.state['G_EFFECTIVE'] = value
+        if 'G_EFFECTIVE_X' in self.program.state:
+            self.program.state['G_EFFECTIVE_X'] = value & 15
+
 
 def fixture():
     from tests.test_game_video import GameVideoTests
@@ -80,6 +89,53 @@ def fixture():
 
 
 class AhdlReadTests(unittest.TestCase):
+    def test_pixel_pipeline_carry_at_row_and_byte_boundaries(self):
+        from tools.game_video_model import descriptor_address
+        ram = fixture()
+        for base in (0, 1, 2, 3, 254, 255, 256, 1019, 1023):
+            for row in (0, 249, 255):
+                for local_y in (0, 1, 7):
+                    ram.load(descriptor_address(0, 8, 0), (0x20 | (base >> 8), base & 255, row, 0))
+                    bench = Bench(ram)
+                    bench.video.x, bench.video.y = 7, local_y
+                    samples = bench.pixels(9)[1:]
+                    self.assertEqual([s.address for s in samples],
+                                     [((((row + local_y) & 255) << 10) + base + x) & 0x3ffff
+                                      for x in range(8)])
+
+    def test_border_updates_and_cpu_addresses_at_every_phase(self):
+        from tools.game_video_model import descriptor_address
+        ram = fixture()
+        for page in (0, 1):
+            for col in range(56):
+                ram.load(descriptor_address(page, col * 8, 0), (0xe0, 255, 255, 0))
+        bench = Bench(ram)
+        # A CPU border write must not change a color already sampled for
+        # the palette slot. Exercise each phase, the bus mux and byte bits.
+        for cycle in range(600):
+            bench.video.border = (cycle * 3) & 7
+            bench.video.cpu_address = (cycle * 7919) & 0x3ffff
+            bench.step()
+
+    def test_write_capture_truth_table_preserved(self):
+        source = SOURCE.read_text()
+        stock = (SOURCE.parent.parent / 'K50/VIDEO2.TDF').read_text()
+        old = re.search(r'^\s*E_WR\s*=\s*LCELL\((.*)\);', stock, re.M)[1]
+        capture = re.search(r'^\s*G_WRITE_CAPTURE\s*=\s*([^;]+);', source, re.M)[1]
+        p = ReadProgram(source)
+        p.widths.update(WR=1, WR_PREV=1, VAI=20, ZX_SCREEN=1)
+        old = Parser(old.replace('DFF(WR,CLK42,,)', 'WR_PREV'), p.widths).expr()
+        capture = Parser(capture.replace('DFF(WR,CLK42,,)', 'WR_PREV'), p.widths).expr()
+        for wr in (0, 1):
+            for previous in (0, 1):
+                for graphics in (0, 1):
+                    for zx in (0, 1):
+                        p.set_inputs(WR=wr, WR_PREV=previous, VAI=graphics << 19, ZX_SCREEN=zx)
+                        self.assertEqual(p.evaluate(capture)[0], 1 - p.evaluate(old)[0])
+        self.assertIn('E_WR = !G_WRITE_CAPTURE;', source)
+        self.assertIn('VXA[].ena  = G_WRITE_CAPTURE;', source)
+        self.assertIn('DOUBLE.ena = G_WRITE_CAPTURE;', source)
+
     def test_descriptor_layout_and_preserved_game_origin(self):
         # The stock expressions independently specify descriptor layout, NOT
         # the final RGB position (that also needs the complete stock pipeline).
@@ -112,7 +168,7 @@ class AhdlReadTests(unittest.TestCase):
         for value in range(256):
             ram.load(descriptor_address(0, 16, 5), (0x24, 19, 90, value))
             bench = Bench(ram)
-            bench.video.scroll = bench.program.state['G_SCROLL'] = 0x57
+            bench.initial_scroll(0x57)
             bench.video.x = 8  # old X scroll=7; next request is grid X=16
             bench.pixels(1)
             for x in range(8):
@@ -142,7 +198,7 @@ class AhdlReadTests(unittest.TestCase):
         for sy in range(16):
             for sx in range(16):
                 bench = Bench(ram)
-                bench.video.scroll = bench.program.state['G_SCROLL'] = sx | (sy<<4)
+                bench.initial_scroll(sx | (sy<<4))
                 bench.video.x, bench.video.y = 383, 319
                 bench.pixels(75)  # CTV edge at 391, horizontal edge at 447
 
@@ -239,6 +295,17 @@ class AhdlReadTests(unittest.TestCase):
     def test_dac_setup_remains_a_separate_one_period_constraint(self):
         ram = fixture()
         ram.dac_setup_ns = PERIOD_NS  # total exceeds palette's one period
+        with self.assertRaisesRegex(RuntimeError, 'setup'):
+            Bench(ram).pixels(3)
+
+    def test_confirmed_hc374_and_15ns_sram_do_not_close_at_42mhz(self):
+        # Nexperia 74HC374: minimum setup 12 ns at VCC=4.5 V, 25 C;
+        # ISSI -15 SRAM: maximum access 15 ns. Even ideal FPGA/PCB delay
+        # cannot fit their 27 ns sum into the palette's 23.81 ns period.
+        # A passing functional test must never imply this board timing closes.
+        ram = fixture()
+        ram.latency_ns, ram.dac_setup_ns = 15, 12
+        self.assertGreater(27, PERIOD_NS)
         with self.assertRaisesRegex(RuntimeError, 'setup'):
             Bench(ram).pixels(3)
 

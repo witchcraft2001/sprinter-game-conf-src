@@ -173,7 +173,11 @@ class GameVideoTests(unittest.TestCase):
             start = source.index('CASE VCM[')
             start = source.index('WHEN 2 =>', start)
             end = source.index('WHEN 3 =>', start)
-            return re.sub(r'\s', '', source[start:end])
+            # The address mux is now independently registered/one-hot. Check
+            # the unchanged write strobes here; its CPU address is executed
+            # and compared to the reference on every cycle by the source bench.
+            slot = re.sub(r'VLA\[\]\.d\s*=[^;]*;', '', source[start:end])
+            return re.sub(r'\s', '', slot)
         self.assertEqual(cpu_slot(old), cpu_slot(new))
         self.assertIn('G_CAPTURE = (VCM[] == 2);', new)
         self.assertIn('G_SAMPLE = (VCM[] == 4);', new)
