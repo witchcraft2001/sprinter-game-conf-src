@@ -1,32 +1,6 @@
 --- a/runtime/patches/reverse_branch.asm
 +++ b/runtime/patches/reverse_branch.asm
-@@ -409,7 +409,16 @@
-         CALL    runtime_reverse_debug_mark
-         ENDIF
- 
--        POP     DE
-+        ; DSS.Read returns actual byte count in DE; EOF may clear carry.
-+        POP     BC
-+        LD      A,D
-+        CP      B
-+        JR      NZ,.read_size_error
-+        LD      A,E
-+        CP      C
-+        JR      NZ,.read_size_error
-+        LD      D,B
-+        LD      E,C
-         LD      A,D
-         OR      E
-         JR      NZ,.requested_size_ok
-@@ -417,6 +426,7 @@
-         LD      A,"z"
-         CALL    runtime_reverse_debug_mark
-         ENDIF
-+.read_size_error:
-         JR      runtime_reverse_acx_close_file_error
- 
- .requested_size_ok:
-@@ -435,6 +445,8 @@
+@@ -435,6 +435,8 @@
          EX      DE,HL
          LD      BC,-TITD_PAK_PAGE_SIZE
          ADD     HL,BC

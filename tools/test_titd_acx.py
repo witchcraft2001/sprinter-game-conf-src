@@ -89,18 +89,22 @@ def main():
             runtime = (stage/'build/runtime_image_patched.bin').read_bytes()
             symbols = mod.sim_mod.read_symbols(stage/'build/runtime_image_patched.sym')
             print('Temporarily patched runtime SHA256:',hashlib.sha256(runtime).hexdigest())
-        def launch(encoded, accept=True, short_read=False):
+        def launch(encoded, accept=True):
             acx.write_bytes(encoded)
             mem = mod.MemoryModel(mod.GAME_PAGES+mod.EXE_PAGES+2); mem.launch()
             run = mod.Run(SimpleNamespace(acx=acx,pak=build/'TITD.PAK',verbose=False),symbols,runtime,mem)
             run.sim.add_file('K50.ACX',encoded)
-            if short_read:
-                read = run.sim._dss
-                def partial_read():
-                    if run.sim.m.c == mod.sim_mod.DSS_READ:
-                        run.sim.m.de -= 1
-                    read()
-                run.sim._dss = partial_read
+            read = run.sim._dss
+            def dss_with_unspecified_de():
+                reading = run.sim.m.c == mod.sim_mod.DSS_READ
+                handle = run.sim.m.a
+                read()
+                if reading:
+                    run.sim.m.de = 0xdead  # caller cannot use this as byte count
+                    file = run.sim.files[handle]
+                    run.sim.m.a = 255 if file.pos >= len(file.data) else 0
+                    run.sim.m.f = (run.sim.m.f & ~0x41) | (0x40 if run.sim.m.a == 0 else 0)
+            run.sim._dss = dss_with_unspecified_de
             captured = []
             original = run.sim.bios_extra[mod.BIOS_RST_CONF]
             def config(s):
@@ -129,8 +133,6 @@ def main():
             assert len(encoded) == size and unpack(encoded) == raw
             launch(encoded); checks += 1
         launch(HEADER[:-1]+b'\x00\x01'+bytes([0xa5])*(65537-7),False); checks += 1
-        if args.loader_patch:
-            launch(HEADER[:-1]+b'\x00\x01'+b'\xa5'*256,False,True); checks += 1
         for count in (1,254,255,256,1024):
             raw = HEADER+bytes(count)+bytes(range(1,256))
             rawfile.write_bytes(raw)

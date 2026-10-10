@@ -51,6 +51,8 @@ small_size:
         CP 7
         JP C,error              ; compressed header requires a zero-run count
 size_ok:
+        LD (file_size_hi),HL
+        LD (file_size),IX
         LD (remaining_hi),HL
         LD (remaining),IX
         LD A,(handle)
@@ -118,14 +120,8 @@ read_page:
         LD HL,0C000h
         LD C,13h
         RST 10h
-        POP BC                  ; requested count; DE is DSS's actual read count
+        POP DE                  ; restore request; DSS.Read DE is unspecified
         JP C,error
-        LD A,D
-        CP B
-        JP NZ,error
-        LD A,E
-        CP C
-        JP NZ,error             ; EOF/short read can return with carry clear
         LD HL,(remaining)
         OR A
         SBC HL,DE
@@ -141,6 +137,24 @@ next_page:
         LD HL,pages_used
         CP (HL)
         JR NZ,load_page
+        ; Confirm total bytes consumed through the documented file-position API.
+        ; Read may report EOF in A with carry clear; no returned DE is assumed.
+        LD A,(handle)
+        LD BC,0115h             ; current position + zero
+        LD HL,0
+        LD IX,0
+        RST 10h
+        JP C,error
+        LD DE,(file_size_hi)
+        OR A
+        SBC HL,DE
+        JP NZ,error
+        PUSH IX
+        POP HL
+        LD DE,(file_size)
+        OR A
+        SBC HL,DE
+        JP NZ,error
         LD A,(handle)
         LD C,12h
         RST 10h
@@ -360,6 +374,8 @@ handle:         DB 0
 block:          DB 0
 page_index:     DB 0
 pages_used:     DB 0
+file_size:      DW 0
+file_size_hi:   DW 0
 remaining:      DW 0
 remaining_hi:   DW 0
 pages:          DS 256,0       ; BIOS #C5 writes pages PLUS FF terminator

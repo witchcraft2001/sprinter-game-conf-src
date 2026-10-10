@@ -82,7 +82,13 @@ class Run:
         elif self.m.c == 0x15:
             if self.m.b == 2:
                 self.m.hl, self.m.ix = len(self.file) >> 16, len(self.file) & 65535
-            else: self.position = 0
+            elif self.m.b == 0:
+                self.position = (self.m.hl<<16)|self.m.ix
+                self.m.hl,self.m.ix = self.position>>16,self.position&65535
+            elif self.m.b == 1:
+                self.position += (self.m.hl<<16)|self.m.ix
+                self.m.hl,self.m.ix = self.position>>16,self.position&65535
+            else: raise AssertionError('Invalid seek mode')
         elif self.m.c == 0x3d:
             self.allocated = list(range(0x70, 0x70 + self.m.b))
             self.m.a = self.allocated[0]
@@ -91,8 +97,9 @@ class Run:
             data = self.file[self.position:self.position + count - int(self.short_read)]
             self.m.set_memory_block(self.m.hl, data)
             self.position += len(data)
-            self.m.de = len(data)
-            self.m.a = 255 if len(data) < count else 0  # EOF need not set carry
+            self.m.de = 0xdead  # not an API result; deliberately poison it
+            self.m.a = 255 if self.position >= len(self.file) else 0
+            # EOF includes an exact read ending at file size; carry remains clear.
         elif self.m.c == 0x12: pass
         elif self.m.c == 0x5c:
             pointer = self.m.hl
