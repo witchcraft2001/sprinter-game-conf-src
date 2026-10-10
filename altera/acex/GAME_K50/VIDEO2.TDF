@@ -508,11 +508,17 @@ IF MODE == "SPRINTER" GENERATE
 	-- byte pixels from the fetch grid (16 displayed dots). Fold the bias
 	-- and modulo 448 into CT=1; CT=0's scroll/advance adder is unchanged.
 	-- Sum is 1..463: cell 0 maps to 55, cells 1..56 to 0..55, 57 to 0.
-	-- Only the six-bit cell number subtracts; the local X bits pass through.
-	IF G_SUM_X[8..3] == 0 THEN G_X[] = (B"110111",G_SUM_X[2..0]);
+	-- Split the cell decrement into two three-bit halves. Local pixel bits
+	-- pass through; only a zero test carries the borrow into the upper half.
+	-- This avoids the six-bit carry chain followed by two full-width muxes.
+	G_X[2..0] = G_SUM_X[2..0];
+	G_X[5..3] = G_SUM_X[5..3] - B"001";
+	IF G_SUM_X[5..3] == 0 THEN
+		IF G_SUM_X[8..6] == 0 THEN G_X[8..6] = B"110";
+		ELSE G_X[8..6] = G_SUM_X[8..6] - B"001"; END IF;
 	ELSE
-		IF G_SUM_X[] >= 456 THEN G_X[] = (B"000000",G_SUM_X[2..0]);
-		ELSE G_X[] = (G_SUM_X[8..3] - B"000001",G_SUM_X[2..0]); END IF;
+		IF G_SUM_X[8..6] == 7 THEN G_X[8..6] = B"000";
+		ELSE G_X[8..6] = G_SUM_X[8..6]; END IF;
 	END IF;
 	-- Y wrap still changes only the upper bits; no vertical origin bias.
 	IF G_SUM_Y[] >= 320 THEN G_Y[] = (G_SUM_Y[8..6] - B"101",G_SUM_Y[5..0]);

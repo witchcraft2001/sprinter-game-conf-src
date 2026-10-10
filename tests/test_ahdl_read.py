@@ -1,11 +1,16 @@
 """Source-linked read pipeline checks; not a fitter or gate-level simulation."""
 import unittest
 import re
+import os
 from pathlib import Path
 from tools.ahdl_read_sim import ReadProgram, Parser
 from tools.game_video_model import SRAM, Video, VCM, PERIOD_NS, palette_address
 
-SOURCE = Path(__file__).resolve().parents[1] / 'altera/acex/GAME_K50/VIDEO2.TDF'
+ROOT = Path(__file__).resolve().parents[1]
+# Allow the same checks to execute the exact staged K30/K50 source, including
+# the target-specific scroll-register transform performed by the build script.
+SOURCE = Path(os.environ.get('GAME_VIDEO_TDF', ROOT / 'altera/acex/GAME_K50/VIDEO2.TDF'))
+STOCK_SOURCE = ROOT / 'altera/acex/K50/VIDEO2.TDF'
 
 
 class Bench:
@@ -89,6 +94,15 @@ def fixture():
 
 
 class AhdlReadTests(unittest.TestCase):
+    def test_horizontal_origin_wrap_exhaustive(self):
+        program = ReadProgram(SOURCE.read_text())
+        # Full reachable sum range, including power-up zero. Independent
+        # modulo arithmetic checks the source's partial-bit assignments.
+        for total in range(464):
+            program.state['G_SUM_X'] = total
+            program.set_inputs(CLK42=1)
+            self.assertEqual(program.driver('G_X'), (total - 8) % 448, total)
+
     def test_horizontal_origin_all_positions_and_scrolls(self):
         # Execute the actual coordinate registers, with arithmetic expectations
         # independent of Video. Include both sides of the origin and X wrap.
@@ -96,15 +110,18 @@ class AhdlReadTests(unittest.TestCase):
         for scroll in range(16):
             for physical_x in range(448):
                 p.state['G_SCROLL'] = scroll | (scroll << 4)
-                p.state['G_EFFECTIVE_X'] = scroll
+                if 'G_EFFECTIVE_X' in p.state:
+                    p.state['G_EFFECTIVE_X'] = scroll
+                else:
+                    p.state['G_EFFECTIVE'] = scroll | (scroll << 4)
                 p.set_inputs(CLK42=1, CT=(physical_x % 8)*8, CTH=physical_x//8,
                              CTV=319, VCM=5, DIR_PORT=0, BRD=0, VXA=0,
                              MXWE=1, VDM0=0, VDM1=0, VDM2=0, VDM3=0)
                 p.edge()  # CT=0: sum the physical advance and scroll
                 p.set_inputs(CT=(physical_x % 8)*8+1, VCM=1)
                 p.edge()  # CT=1: horizontal origin bias + raster wrap
-                self.assertEqual(p.state['G_X'], (physical_x + 1 + scroll - 8) % 448)
-                self.assertEqual(p.state['G_Y'], (319 + (physical_x == 391) + scroll) % 320)
+                self.assertEqual(p.get('G_X'), (physical_x + 1 + scroll - 8) % 448)
+                self.assertEqual(p.get('G_Y'), (319 + (physical_x == 391) + scroll) % 320)
 
     def test_pixel_pipeline_carry_at_row_and_byte_boundaries(self):
         from tools.game_video_model import descriptor_address
@@ -136,7 +153,7 @@ class AhdlReadTests(unittest.TestCase):
 
     def test_write_capture_truth_table_preserved(self):
         source = SOURCE.read_text()
-        stock = (SOURCE.parent.parent / 'K50/VIDEO2.TDF').read_text()
+        stock = STOCK_SOURCE.read_text()
         old = re.search(r'^\s*E_WR\s*=\s*LCELL\((.*)\);', stock, re.M)[1]
         capture = re.search(r'^\s*G_WRITE_CAPTURE\s*=\s*([^;]+);', source, re.M)[1]
         p = ReadProgram(source)
@@ -158,7 +175,7 @@ class AhdlReadTests(unittest.TestCase):
         # the final RGB position (that also needs the complete stock pipeline).
         # After the HOLD fix, the board shows a remaining one-cell left shift.
         # Descriptor c must therefore be fetched in physical cell c+1.
-        stock = (SOURCE.parent.parent / 'K50/VIDEO2.TDF').read_text()
+        stock = STOCK_SOURCE.read_text()
         stock = re.sub(r'--[^\n]*', '', re.sub(r'%.*?%', '', stock, flags=re.S))
         slot = stock[stock.index('CASE VCM[1..0] IS'):]
         slot = slot[slot.index('WHEN 3 =>'):slot.index('END CASE;')]
@@ -254,7 +271,8 @@ class AhdlReadTests(unittest.TestCase):
                      ('G_SCROLL[].ena = (VCM[] == 4) & G_APPLY;',
                       'G_SCROLL[].ena = (VCM[] == 0) & G_APPLY;'),
                      ('TSN_W3.d = (VCM[] != 0);', 'TSN_W3.d = (VCM[1..0] != 0);'),
-                     ('G_SUM_X[] >= 456', 'G_SUM_X[] >= 455')]
+                     ('G_X[5..3] = G_SUM_X[5..3] - B"001";',
+                      'G_X[5..3] = G_SUM_X[5..3] - B"000";')]
         from tools.game_video_model import descriptor_address
         for old,new in mutations:
             with self.subTest(mutation=old):
