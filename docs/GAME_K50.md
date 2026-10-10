@@ -14,6 +14,16 @@ Fitting report и измеренные задержки SRAM/DAC ещё не п�
 
 ## Сборка Windows
 
+Для той же игровой конфигурации под `EP1K30QC208-3` запустите
+`altera\acex\make_game_k30.bat`. Используются общие исходники `K50` и
+`GAME_K50/VIDEO2.TDF`, а целевое устройство во всех staging-ACF меняется на K30.
+Каждый запуск создаёт отдельный каталог `altera\acex\build\GAME_K30-число-число`.
+После успешной компиляции и проверки упаковки он содержит готовый `K30.ACX`,
+`STREAM30.BIN`, `K30.packed`, `roundtrip.bin`, отчёт и логи.
+Проверка требует ровно один `Device: EP1K30QC208-3` в отчёте и заголовок
+`FF FF 62 7B 39 00` в распакованном потоке; остальные проверки совпадают с K50.
+Полный путь к готовому ACX выводится строкой `Packaging passed`.
+
 Нужны MAX+plus II (по умолчанию `C:\MAXPLUS2\MAXPLUS2\MAXPLUS2.EXE`), штатные Windows
 `cmd.exe`, Windows Script Host (`cscript.exe`) и `ADODB.Stream`. Python, grep, Unix shell и Quartus для FPGA-сборки не нужны.
 Если MAX+plus II установлен иначе, задайте `MAXPLUS2_EXE` полным путём к EXE.

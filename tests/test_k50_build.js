@@ -19,16 +19,19 @@ const raw = [255, 255, 98, 123, 60, 0, 1];
 const packed = [255, 255, 98, 123, 60, 0, 1, 1];
 const report = 'Project compilation was successful\r\nDevice: EP1K50QC208-3\r\n';
 const ttf = '255,255,98,123,60,0,1,\r\n';
-function fixture(work) {
-    fs.writeFileSync(work + '/SP2_ACEX.rpt', report);
+function fixture(work, variant = 'GAME_K50') {
+    const chip = variant === 'GAME_K30' ? 'K30' : 'K50';
+    const stream = chip === 'K30' ? raw.map((v, i) => i === 4 ? 57 : v) : raw;
+    const encoded = chip === 'K30' ? packed.map((v, i) => i === 4 ? 57 : v) : packed;
+    fs.writeFileSync(work + '/SP2_ACEX.rpt', report.replace('K50', chip));
     fs.writeFileSync(work + '/SP2_ACEX.sof', 'synthetic test data');
-    fs.writeFileSync(work + '/SP2_ACEX.ttf', ttf);
-    for (const [name, data] of [['STREAM50.BIN',raw], ['roundtrip.bin',raw], ['K50.packed',packed]]) {
+    fs.writeFileSync(work + '/SP2_ACEX.ttf', stream.join(',') + ',\r\n');
+    for (const [name, data] of [[chip === 'K30' ? 'STREAM30.BIN' : 'STREAM50.BIN',stream], ['roundtrip.bin',stream], [chip + '.packed',encoded]]) {
         fs.writeFileSync(work + '/' + name, Buffer.from(data));
     }
 }
 try {
-    for (const variant of ['STANDARD_K50', 'GAME_K50']) {
+    for (const variant of ['STANDARD_K50', 'GAME_K50', 'GAME_K30']) {
         test('prepare ' + variant + ' preserves pins and floorplan', () => {
             const work = temp + '/' + variant;
             build.prepare(io, root + '/altera/acex', work, variant);
@@ -36,12 +39,14 @@ try {
             const staged = io.readText(work + '/SP2_ACEX.ACF');
             const assignments = t => t.split(/\r?\n/).filter(l => !/^\s*--/.test(l) && /(?:_PIN\s*=\s*\d+|LOCATION\s*=)/.test(l));
             assert.deepStrictEqual(assignments(staged), assignments(source));
-            assert.ok(staged.includes('DEVICE_FOR_TIMING_SYNTHESIS = EP1K50QC208-3;'));
+            const chip = variant === 'GAME_K30' ? 'K30' : 'K50';
+            assert.ok(staged.includes('DEVICE_FOR_TIMING_SYNTHESIS = EP1' + chip + 'QC208-3;'));
             for (const f of io.list(work).filter(n => /\.ACF$/i.test(n))) {
-                assert.ok(!/^\s*DEVICE(?:_FOR_TIMING_SYNTHESIS)?\s*=\s*EP1K30/im.test(io.readText(work+'/'+f)));
+                const devices = io.readText(work+'/'+f).match(/^\s*DEVICE(?:_FOR_TIMING_SYNTHESIS)?\s*=\s*EP1K[^;]+;/gim) || [];
+                assert.ok(devices.every(line => line.includes('EP1' + chip + 'QC208-3;')));
             }
             assert.ok(!io.exists(work + '/SP2_ACEX.ttf'));
-            assert.strictEqual(io.readText(work + '/VIDEO2.TDF'), io.readText(root + '/altera/acex/' + (variant === 'GAME_K50' ? 'GAME_K50' : 'K50') + '/VIDEO2.TDF'));
+            assert.strictEqual(io.readText(work + '/VIDEO2.TDF'), io.readText(root + '/altera/acex/' + (variant === 'STANDARD_K50' ? 'K50' : 'GAME_K50') + '/VIDEO2.TDF'));
             assert.throws(() => build.prepare(io, root + '/altera/acex', work, variant), /already exists/);
         });
     }
@@ -51,6 +56,21 @@ try {
         build.verifyDirectory(io, work, 'GAME_K50');
         assert.deepStrictEqual(io.readBytes(work + '/K50.ACX'), packed);
         assert.throws(() => build.verifyDirectory(io, work, 'GAME_K50'), /already exists/);
+    });
+    test('K30 packaging rejects K50 report and bitstream', () => {
+        const work = temp + '/GAME_K30'; fixture(work, 'GAME_K30');
+        fs.writeFileSync(work + '/SP2_ACEX.rpt', report);
+        assert.throws(() => build.verifyDirectory(io, work, 'GAME_K30'), /Device/);
+        assert.ok(!io.exists(work + '/K30.ACX'));
+        fs.writeFileSync(work + '/SP2_ACEX.rpt', report.replace('K50', 'K30'));
+        fs.writeFileSync(work + '/STREAM30.BIN', Buffer.from(raw));
+        assert.throws(() => build.verifyDirectory(io, work, 'GAME_K30'), /header/);
+        assert.ok(!io.exists(work + '/K30.ACX'));
+        fixture(work, 'GAME_K30');
+        build.verifyDirectory(io, work, 'GAME_K30');
+        assert.deepStrictEqual(io.readBytes(work + '/K30.ACX'), packed.map((v, i) => i === 4 ? 57 : v));
+        assert.ok(!io.exists(work + '/K50.ACX'));
+        assert.throws(() => build.verifyDirectory(io, work, 'GAME_K30'), /already exists/);
     });
     const cases = [
         ['wrong chip', report.replace('EP1K50', 'EP1K30'), 1, ttf, raw, packed, raw],
