@@ -96,14 +96,18 @@ var K50Build = (function () {
         var devices = report.match(/^\s*Device:[^\r\n]*/gim) || [];
         requireCondition(devices.length === 1 && new RegExp('^\\s*Device:\\s*' + config.device + '\\s*$', 'i').test(devices[0]),
                          'Report must contain exactly one Device: ' + config.device);
-        requireCondition(sofSize > 0 && raw.length > 0 && back.length > 0 && packed.length > 0,
+        requireCondition(sofSize > 0 && raw.length > 0,
                          'Missing or empty compiler/converter result');
-        requireCondition(packed.length <= 65536, 'ACX exceeds four 16 KiB loader pages');
+        requireCondition((config.chip === 'K30' ? raw : packed).length <= 65536,
+                         'ACX exceeds four 16 KiB loader pages');
         var header = [255, 255, 98, 123, config.header, 0], i, j = 0, n, value;
         for (i = 0; i < header.length; i++) {
             requireCondition(raw[i] === header[i], 'Bitstream header is not ACEX ' + config.chip);
         }
         compare(parseTtf(ttf), raw, 'TTF/stream');
+        // K30 loads the raw configuration stream directly, without zero RLE.
+        if (config.chip === 'K30') { return; }
+        requireCondition(back.length > 0 && packed.length > 0, 'Missing or empty compiler/converter result');
         compare(back, raw, 'Roundtrip');
         // Independent strict depacker: do not trust the legacy utility's exit code.
         for (i = 0; i < packed.length; i++) {
@@ -143,13 +147,18 @@ var K50Build = (function () {
     }
     function verifyDirectory(io, work, variant) {
         var config = target(variant), packedName = config.chip + '.packed', acxName = config.chip + '.ACX';
+        var uncompressed = config.chip === 'K30';
         requireCondition(io.readText(work + '/variant.txt').replace(/\s/g, '') === variant, 'Variant mismatch');
         requireCondition(!io.exists(work + '/' + acxName), 'Release ACX already exists; refusing re-verification');
         verify(io.readText(work + '/SP2_ACEX.rpt'), io.size(work + '/SP2_ACEX.sof'),
                io.readText(work + '/SP2_ACEX.ttf'), io.readBytes(work + '/' + config.stream),
-               io.readBytes(work + '/' + packedName), io.readBytes(work + '/roundtrip.bin'), variant);
-        io.copy(work + '/' + packedName, work + '/' + acxName);
-        io.writeText(work + '/package-verification.txt', 'VERIFIED PACKAGING ONLY: ' + variant + '\r\n');
+               uncompressed ? [] : io.readBytes(work + '/' + packedName),
+               uncompressed ? [] : io.readBytes(work + '/roundtrip.bin'), variant);
+        var releaseSource = work + '/' + (uncompressed ? config.stream : packedName);
+        io.copy(releaseSource, work + '/' + acxName);
+        compare(io.readBytes(work + '/' + acxName), io.readBytes(releaseSource), 'Published ACX');
+        io.writeText(work + '/package-verification.txt', 'VERIFIED PACKAGING ONLY: ' + variant +
+                     (uncompressed ? ' RAW (UNCOMPRESSED)' : ' ZERO-RLE') + '\r\n');
     }
     function publishStandardStream(io, work, target) {
         requireCondition(io.readText(work + '/variant.txt').replace(/\s/g, '') === 'STANDARD_K50',

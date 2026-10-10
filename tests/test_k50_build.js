@@ -26,7 +26,9 @@ function fixture(work, variant = 'GAME_K50') {
     fs.writeFileSync(work + '/SP2_ACEX.rpt', report.replace('K50', chip));
     fs.writeFileSync(work + '/SP2_ACEX.sof', 'synthetic test data');
     fs.writeFileSync(work + '/SP2_ACEX.ttf', stream.join(',') + ',\r\n');
-    for (const [name, data] of [[chip === 'K30' ? 'STREAM30.BIN' : 'STREAM50.BIN',stream], ['roundtrip.bin',stream], [chip + '.packed',encoded]]) {
+    const files = [[chip === 'K30' ? 'STREAM30.BIN' : 'STREAM50.BIN',stream]];
+    if (chip === 'K50') files.push(['roundtrip.bin',stream], [chip + '.packed',encoded]);
+    for (const [name, data] of files) {
         fs.writeFileSync(work + '/' + name, Buffer.from(data));
     }
 }
@@ -96,9 +98,24 @@ try {
         assert.ok(!io.exists(work + '/K30.ACX'));
         fixture(work, 'GAME_K30');
         build.verifyDirectory(io, work, 'GAME_K30');
-        assert.deepStrictEqual(io.readBytes(work + '/K30.ACX'), packed.map((v, i) => i === 4 ? 57 : v));
+        assert.deepStrictEqual(io.readBytes(work + '/K30.ACX'), raw.map((v, i) => i === 4 ? 57 : v));
+        assert.ok(!io.exists(work + '/K30.packed'));
+        assert.ok(!io.exists(work + '/roundtrip.bin'));
         assert.ok(!io.exists(work + '/K50.ACX'));
         assert.throws(() => build.verifyDirectory(io, work, 'GAME_K30'), /already exists/);
+    });
+    test('K30 raw stream rejects packed data, corruption and oversized output', () => {
+        const k30Report = report.replace('K50', 'K30');
+        const stream = raw.map((v, i) => i === 4 ? 57 : v);
+        const encoded = packed.map((v, i) => i === 4 ? 57 : v);
+        build.verify(k30Report, 1, stream.join(','), stream, [], [], 'GAME_K30');
+        assert.throws(() => build.verify(k30Report, 1, stream.join(','), encoded, [], [], 'GAME_K30'), /TTF\/stream/);
+        assert.throws(() => build.verify(k30Report, 1, stream.join(','), stream.slice(0, -1), [], [], 'GAME_K30'), /TTF\/stream/);
+        assert.throws(() => build.verify(k30Report, 1, '', [], [], [], 'GAME_K30'), /empty/);
+        const limit = stream.concat(new Array(65536 - stream.length).fill(0));
+        build.verify(k30Report, 1, limit.join(','), limit, [], [], 'GAME_K30');
+        limit.push(0);
+        assert.throws(() => build.verify(k30Report, 1, limit.join(','), limit, [], [], 'GAME_K30'), /four 16 KiB/);
     });
     test('legacy BIOS stream publishes only validated standard raw data', () => {
         const work = temp + '/STANDARD_K50', target = temp + '/STREAM.BIN';
