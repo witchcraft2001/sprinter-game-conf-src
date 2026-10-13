@@ -279,7 +279,8 @@ release:
         CP 15
         JR NZ,release
         JR poll
-; All 56 columns and 40 rows, both descriptor pages. MODE3 at column 53
+; Initialize the 56x40 raster plus two scroll guard columns/rows on both
+; descriptor pages. MODE3 at column 53; guard cells are border/blank.
 ; tests controls beyond visible X=320. Page 1 reverses cell numbering.
 maps:
         LD D,0                  ; descriptor column
@@ -355,16 +356,16 @@ store_mode:
         INC HL
         INC E
         LD A,E
-        CP 40
+        CP 42
         JR NZ,row
         INC D
         LD A,D
-        CP 56
+        CP 58
         JR NZ,not_page_end
         LD D,64
 not_page_end:
         LD A,D
-        CP 120
+        CP 122
         JP NZ,column
         LD A,0C0h
         OUT (089h),A

@@ -16,8 +16,8 @@ class GameVideoTests(unittest.TestCase):
         for a in range(262144):
             ram.write(a, (a ^ (a >> 8) ^ (a >> 16)) & 255)
         for page in range(2):
-            for col in range(56):
-                for row in range(40):
+            for col in range(64):
+                for row in range(64):
                     ram.load(descriptor_address(page, col * 8, row * 8),
                              ((col & 3) << 6, 17 + page, 64 + row, 0))
         return ram
@@ -53,8 +53,8 @@ class GameVideoTests(unittest.TestCase):
                 v.next_sample()
                 for _ in range(25):
                     s = v.next_sample()
-                    self.assertEqual(s.x, (v.x - 8 + sx) % 448)
-                    self.assertEqual(s.y, (v.y + sy) % 320)
+                    self.assertEqual(s.x, ((v.x - 8) % 448 + sx) & 511)
+                    self.assertEqual(s.y, (v.y + sy) & 511)
                     self.assertEqual(v.scroll, sx | sy << 4)
 
     def test_control_capture_once_and_next_request_latency(self):
@@ -75,7 +75,7 @@ class GameVideoTests(unittest.TestCase):
             self.assertEqual(s.address, 87 * 1024 + 19 + local)
             self.assertEqual(v.scroll, 255 if local == 7 else 0)
         second = v.next_sample()
-        self.assertEqual((second.x, second.y), (447, 7))
+        self.assertEqual((second.x, second.y), (447, 327))
         self.assertEqual(v.scroll_loads, 1)
         for _ in range(1000): v.next_sample()
         self.assertEqual(v.scroll, 255)
@@ -95,7 +95,7 @@ class GameVideoTests(unittest.TestCase):
                 for x in range(8):
                     for y in range(8):
                         mode = (0x20 | xbase >> 8, xbase & 255, ybase, 0)
-                        expected = ((((ybase + y) % 256) * 1024) + xbase + x) % 262144
+                        expected = (((ybase + y) % 256) * 1024) + ((xbase + x) % 1024)
                         self.assertEqual(pixel_address(mode, x, y), expected)
 
     def test_control_colors_blank_interrupt_and_palette_delay(self):

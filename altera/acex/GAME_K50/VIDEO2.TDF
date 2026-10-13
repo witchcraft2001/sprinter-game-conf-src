@@ -172,8 +172,10 @@ VARIABLE
 	G_LOW_X[4..0] : NODE;
 	G_LOW_Y[4..0] : NODE;
 	G_ADVANCE_Y : NODE;
-	G_SUM_X[9..0] : DFFE;
-	G_SUM_Y[9..0] : DFFE;
+	G_SUM_X[8..0] : DFFE;
+	G_SUM_Y[8..0] : DFFE;
+	G_ORIGIN_WRAP : DFFE;
+	G_FRAME_WRAP : DFFE;
 	G_X[8..0] : DFFE;
 	G_Y[8..0] : DFFE;
 	G_SCROLL[7..0] : DFFE;
@@ -188,7 +190,7 @@ VARIABLE
 	G_LOCAL_X[2..0] : DFFE;
 	G_LOCAL_Y[2..0] : DFFE;
 	G_YBASE[7..0] : DFFE;
-	G_PIXEL_X[10..0] : DFFE;
+	G_PIXEL_X[9..0] : DFFE;
 	G_ADDRESS[17..0] : NODE;
 	G_COLOR[7..0] : DFFE;
 	G_PAL[1..0] : DFFE;
@@ -489,33 +491,35 @@ IF MODE == "SPRINTER" GENERATE
 
 --	=====================
 
-	-- Add physical advance and scroll BEFORE wrapping. Splitting at the
-	-- low bits avoids two serial nine-bit adders and the intermediate
-	-- physical-wrap mux. At x=447/y=319 the final wrap also wraps advance.
+	-- Physical raster rollover and descriptor address arithmetic are distinct.
+	-- Scroll may address columns 56..57 / rows 40..41: do not wrap the
+	-- fetch grid at 448/320. The descriptor coordinates are nine-bit fields.
 	G_ADVANCE_Y = (CTH[] == 48) & (CT[5..3] == 7);
 	G_LOW_X[] = (B"00",CT[5..3]) + (GND,G_EFFECTIVE[3..0]) + B"00001";
 	G_LOW_Y[] = (GND,CTV[3..0]) + (GND,G_EFFECTIVE[7..4]) + (B"0000",G_ADVANCE_Y);
-	-- CT=0: coordinate addition. CT=1: wrap. CT=2: issue descriptor.
+	-- CT=0: coordinate addition and physical-boundary flags.
+	-- CT=1: apply physical origin/frame corrections. CT=2: issue descriptor.
 	-- Physical coordinates are stable throughout CT=0..2; pending scroll
 	-- was captured at CT=5 and applies to the next cell's first request.
 	G_SUM_X[].clk = CLK42; G_SUM_Y[].clk = CLK42;
 	G_SUM_X[].ena = (VCM[] == 5); G_SUM_Y[].ena = (VCM[] == 5);
-	G_SUM_X[] = (GND,CTH[] + (B"0000",G_LOW_X[4..3]),G_LOW_X[2..0]);
-	G_SUM_Y[] = (GND,CTV[8..4] + (B"0000",G_LOW_Y[4]),G_LOW_Y[3..0]);
+	G_SUM_X[] = (CTH[] + (B"0000",G_LOW_X[4..3]),G_LOW_X[2..0]);
+	G_SUM_Y[] = (CTV[8..4] + (B"0000",G_LOW_Y[4]),G_LOW_Y[3..0]);
+	G_ORIGIN_WRAP.clk = CLK42; G_FRAME_WRAP.clk = CLK42;
+	G_ORIGIN_WRAP.ena = (VCM[] == 5); G_FRAME_WRAP.ena = (VCM[] == 5);
+	G_ORIGIN_WRAP = (CTH[] == 0) & (CT[5..3] != 7);
+	G_FRAME_WRAP = G_ADVANCE_Y & (CTV[] == 319);
 	G_X[].clk = CLK42; G_Y[].clk = CLK42;
 	G_X[].ena = (VCM[] == 1); G_Y[].ena = (VCM[] == 1);
-	-- Descriptor column c belongs one cell to the right: subtract eight
-	-- byte pixels from the fetch grid (16 displayed dots). Fold the bias
-	-- and modulo 448 into CT=1; CT=0's scroll/advance adder is unchanged.
-	-- Sum is 1..463: cell 0 maps to 55, cells 1..56 to 0..55, 57 to 0.
-	-- Only the six-bit cell number subtracts; the local X bits pass through.
-	IF G_SUM_X[8..3] == 0 THEN G_X[] = (B"110111",G_SUM_X[2..0]);
-	ELSE
-		IF G_SUM_X[] >= 456 THEN G_X[] = (B"000000",G_SUM_X[2..0]);
-		ELSE G_X[] = (G_SUM_X[8..3] - B"000001",G_SUM_X[2..0]); END IF;
-	END IF;
-	-- Y wrap still changes only the upper bits; no vertical origin bias.
-	IF G_SUM_Y[] >= 320 THEN G_Y[] = (G_SUM_Y[8..6] - B"101",G_SUM_Y[5..0]);
+	-- Keep the one-cell display origin: the first physical cell follows
+	-- physical cell 55. This correction depends ONLY on raster position,
+	-- never on the scrolled sum. +55 cells equals -1 cell +56 raster cells.
+	IF G_ORIGIN_WRAP THEN G_X[] = (G_SUM_X[8..3] + B"110111",G_SUM_X[2..0]);
+	ELSE G_X[] = (G_SUM_X[8..3] - B"000001",G_SUM_X[2..0]); END IF;
+	-- At the actual frame edge 319+1 becomes 0 before adding scroll.
+	-- Low four sum bits then already contain scroll Y. Otherwise retain
+	-- addresses >=320, which select descriptor rows beyond the physical raster.
+	IF G_FRAME_WRAP THEN G_Y[] = (B"00000",G_SUM_Y[3..0]);
 	ELSE G_Y[] = G_SUM_Y[8..0]; END IF;
 
 	G_REQUEST[].clk = CLK42;
@@ -565,13 +569,13 @@ IF MODE == "SPRINTER" GENERATE
 	-- No line/frame reset. A new control replaces a still-pending control.
 
 	-- CT=6: prepare pixel offsets after descriptor capture at CT=5.
-	-- Split the 18-bit address adder into parallel X/Y sums, then add
-	-- only X's carry to Y at CT=0. Keep arbitrary, unaligned X bases.
+	-- Independent bitmap coordinates: ten-bit X and eight-bit Y.
+	-- An X overflow wraps in the SAME bitmap row; it never increments Y.
 	G_YBASE[].clk = CLK42; G_YBASE[].ena = (VCM[] == 0);
 	G_PIXEL_X[].clk = CLK42; G_PIXEL_X[].ena = (VCM[] == 0);
 	G_YBASE[] = MODE2[] + (B"00000",G_LOCAL_Y[]);
-	G_PIXEL_X[] = (GND,MODE0[1..0],MODE1[]) + (B"00000000",G_LOCAL_X[]);
-	G_ADDRESS[] = (G_YBASE[] + (B"0000000",G_PIXEL_X[10]),G_PIXEL_X[9..0]);
+	G_PIXEL_X[] = (MODE0[1..0],MODE1[]) + (B"0000000",G_LOCAL_X[]);
+	G_ADDRESS[] = (G_YBASE[],G_PIXEL_X[]);
 	-- Decode the next bus slot alongside VCM, one edge before VLA uses it.
 	-- Independent masks make a shallow one-hot mux, not a VCM decode chain.
 	G_SLOT_PIXEL.clk = CLK42; G_SLOT_PALETTE.clk = CLK42;

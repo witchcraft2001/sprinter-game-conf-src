@@ -89,6 +89,27 @@ def fixture():
 
 
 class AhdlReadTests(unittest.TestCase):
+    def test_scroll_reads_descriptors_beyond_physical_raster(self):
+        from tools.game_video_model import descriptor_address
+        ram = fixture()
+        for page in (0, 1):
+            # Different sentinels at the requested and formerly wrapped cells.
+            extended = descriptor_address(page, 448, 320)
+            alias = descriptor_address(page, 0, 0)
+            ram.load(extended, (0x20, 101, 80, 0))
+            ram.load(alias, (0x20, 201, 90, 0))
+            ram.write(80*1024+101, 0xa5)
+            ram.write(90*1024+201, 0x5a)
+            bench = Bench(ram)
+            bench.initial_scroll(0x11)
+            bench.video.page = page
+            bench.video.x, bench.video.y = 6, 319
+            sample = bench.pixels(2)[1]
+            self.assertEqual((sample.x, sample.y), (448, 320))
+            self.assertEqual(sample.descriptor, extended)
+            self.assertEqual(sample.address, 80*1024+101)
+            self.assertEqual(sample.color, 0xa5)
+
     def test_horizontal_origin_all_positions_and_scrolls(self):
         # Execute the actual coordinate registers, with arithmetic expectations
         # independent of Video. Include both sides of the origin and X wrap.
@@ -103,10 +124,10 @@ class AhdlReadTests(unittest.TestCase):
                 p.edge()  # CT=0: sum the physical advance and scroll
                 p.set_inputs(CT=(physical_x % 8)*8+1, VCM=1)
                 p.edge()  # CT=1: horizontal origin bias + raster wrap
-                self.assertEqual(p.state['G_X'], (physical_x + 1 + scroll - 8) % 448)
-                self.assertEqual(p.state['G_Y'], (319 + (physical_x == 391) + scroll) % 320)
+                self.assertEqual(p.state['G_X'], ((physical_x + 1 - 8) % 448 + scroll) & 511)
+                self.assertEqual(p.state['G_Y'], ((319 + (physical_x == 391)) % 320 + scroll) & 511)
 
-    def test_pixel_pipeline_carry_at_row_and_byte_boundaries(self):
+    def test_pixel_pipeline_independent_xy_wrap(self):
         from tools.game_video_model import descriptor_address
         ram = fixture()
         for base in (0, 1, 2, 3, 254, 255, 256, 1019, 1023):
@@ -117,7 +138,7 @@ class AhdlReadTests(unittest.TestCase):
                     bench.video.x, bench.video.y = 15, local_y
                     samples = bench.pixels(9)[1:]
                     self.assertEqual([s.address for s in samples],
-                                     [((((row + local_y) & 255) << 10) + base + x) & 0x3ffff
+                                     [(((row + local_y) & 255) << 10) | ((base + x) & 1023)
                                       for x in range(8)])
 
     def test_border_updates_and_cpu_addresses_at_every_phase(self):
@@ -254,7 +275,7 @@ class AhdlReadTests(unittest.TestCase):
                      ('G_SCROLL[].ena = (VCM[] == 4) & G_APPLY;',
                       'G_SCROLL[].ena = (VCM[] == 0) & G_APPLY;'),
                      ('TSN_W3.d = (VCM[] != 0);', 'TSN_W3.d = (VCM[1..0] != 0);'),
-                     ('G_SUM_X[] >= 456', 'G_SUM_X[] >= 455')]
+                     ('G_SUM_X[8..3] - B"000001"', 'G_SUM_X[8..3] - B"000010"')]
         from tools.game_video_model import descriptor_address
         for old,new in mutations:
             with self.subTest(mutation=old):

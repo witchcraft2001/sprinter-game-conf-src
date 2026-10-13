@@ -15,8 +15,9 @@ def descriptor_address(page, x, y):
 
 
 def pixel_address(mode, x, y):
-    return ((((mode[2] + y) & 255) * 1024) +
-            ((mode[0] & 3) << 8) + mode[1] + x) & 0x3ffff
+    bitmap_x = (((mode[0] & 3) << 8) + mode[1] + x) & 1023
+    bitmap_y = (mode[2] + y) & 255
+    return (bitmap_y << 10) | bitmap_x
 
 
 def palette_address(index):
@@ -128,8 +129,8 @@ class Video:
                 self.pending = None
                 self.scroll_loads += 1
             ny = (self.y + (self.x == 391)) % 320
-            self.fetch_x = (nx + (self.scroll & 15)) % 448
-            self.fetch_y = (ny + (self.scroll >> 4)) % 320
+            self.fetch_x = (nx + (self.scroll & 15)) & 511
+            self.fetch_y = (ny + (self.scroll >> 4)) & 511
             self.local_x, self.local_y = self.fetch_x & 7, self.fetch_y & 7
             self.request = descriptor_address(self.page, self.fetch_x, self.fetch_y)
             address, slot = self.request, 'descriptor'

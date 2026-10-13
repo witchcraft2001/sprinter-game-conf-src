@@ -17,7 +17,8 @@ let count = 0;
 function test(name, fn) { fn(); count++; console.log('PASS ' + name); }
 const raw = [255, 255, 98, 123, 60, 0, 1];
 const packed = [255, 255, 98, 123, 60, 0, 1, 1];
-const report = 'Project compilation was successful\r\nDevice: EP1K50QC208-3\r\n';
+const timing = 'fmax  <default>  100.00 MHz  44.24 MHz  Failed  TG42 to register a.Q to register b.Q\r\n';
+const report = 'Project compilation was successful\r\nDevice: EP1K50QC208-3\r\n' + timing;
 const ttf = '255,255,98,123,60,0,1,\r\n';
 function fixture(work, variant = 'GAME_K50') {
     const chip = variant === 'GAME_K30' ? 'K30' : 'K50';
@@ -31,6 +32,34 @@ function fixture(work, variant = 'GAME_K50') {
     }
 }
 try {
+    test('TG42 gate parses the real MAX+plus II report format', () => {
+        assert.strictEqual(build.verifyGameTiming(io.readText(root + '/altera/acex/sp2_acex.rpt')), 43.10);
+        assert.strictEqual(build.verifyGameTiming(report), 44.24);
+        assert.strictEqual(build.verifyGameTiming(timing.replace('44.24', '42.01')), 42.01);
+        assert.strictEqual(build.verifyGameTiming(timing.replace('Failed', '')), 44.24);
+    });
+    test('TG42 gate rejects absent, marginal and unrelated clock results', () => {
+        for (const value of ['0.00', '41.99', '42.00']) {
+            assert.throws(() => build.verifyGameTiming(timing.replace('44.24', value)), /exceed 42/);
+        }
+        assert.throws(() => build.verifyGameTiming(timing.replace('TG42', 'OTHER_CLOCK')), /Missing TG42/);
+        assert.throws(() => build.verifyGameTiming('Clock pin "TG42". Current fmax is 99.00 MHz.'), /Missing TG42/);
+        assert.throws(() => build.verifyGameTiming(timing + timing.replace('44.24', '40.00')), /exceed 42/);
+    });
+    test('game ACX is not published when TG42 timing fails', () => {
+        for (const variant of ['GAME_K50', 'GAME_K30']) {
+            const work = temp + '/timing-' + variant;
+            build.prepare(io, root + '/altera/acex', work, variant);
+            fixture(work, variant);
+            const rpt = io.readText(work + '/SP2_ACEX.rpt');
+            fs.writeFileSync(work + '/SP2_ACEX.rpt', rpt.replace('44.24', '42.00'));
+            assert.throws(() => build.verifyDirectory(io, work, variant), /exceed 42/);
+            assert.ok(!io.exists(work + '/' + variant.slice(5) + '.ACX'));
+            fs.writeFileSync(work + '/SP2_ACEX.rpt', rpt.replace(timing, ''));
+            assert.throws(() => build.verifyDirectory(io, work, variant), /Missing TG42/);
+            assert.ok(!io.exists(work + '/' + variant.slice(5) + '.ACX'));
+        }
+    });
     for (const variant of ['STANDARD_K50', 'GAME_K50', 'GAME_K30']) {
         test('prepare ' + variant + ' preserves pins and floorplan', () => {
             const work = temp + '/' + variant;
@@ -85,7 +114,7 @@ try {
         assert.ok(!io.exists(work + '/K50.ACX'));
         assert.throws(() => build.verifyDirectory(io, work, 'GAME_K30'), /already exists/);
     });
-    test('legacy BIOS stream publishes only validated standard raw data', () => {
+    test('legacy K50 BIOS stream publishes only validated compressed standard data', () => {
         const work = temp + '/STANDARD_K50', target = temp + '/STREAM.BIN';
         fixture(work);
         fs.writeFileSync(target, 'previous BIOS stream');
@@ -93,12 +122,19 @@ try {
         assert.strictEqual(io.readText(target), 'previous BIOS stream');
         build.verifyDirectory(io, work, 'STANDARD_K50');
         build.publishStandardStream(io, work, target);
-        assert.deepStrictEqual(io.readBytes(target), raw);
+        assert.deepStrictEqual(io.readBytes(target), packed);
+        assert.notDeepStrictEqual(io.readBytes(target), raw);
+        assert.deepStrictEqual(io.readBytes(work + '/STREAM50.BIN'), raw);
         assert.throws(() => build.publishStandardStream(io, temp + '/GAME_K50', target), /Only STANDARD/);
         assert.throws(() => build.publishStandardStream(io, temp + '/GAME_K30', target), /Only STANDARD/);
+        // Raw data mislabeled ACX must not replace the valid BIOS stream.
+        fs.writeFileSync(work + '/K50.ACX', Buffer.from(raw));
+        assert.throws(() => build.publishStandardStream(io, work, target));
+        assert.deepStrictEqual(io.readBytes(target), packed);
+        fs.writeFileSync(work + '/K50.ACX', Buffer.from(packed));
         fs.writeFileSync(work + '/STREAM50.BIN', Buffer.from([1,2,3]));
         assert.throws(() => build.publishStandardStream(io, work, target));
-        assert.deepStrictEqual(io.readBytes(target), raw);
+        assert.deepStrictEqual(io.readBytes(target), packed);
     });
     const cases = [
         ['wrong chip', report.replace('EP1K50', 'EP1K30'), 1, ttf, raw, packed, raw],

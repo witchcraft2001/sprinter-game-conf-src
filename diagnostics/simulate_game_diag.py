@@ -162,8 +162,8 @@ class Run:
 
 def check_maps(run, scroll):
     for page in range(2):
-        for col in range(56):
-            for row in range(40):
+        for col in range(58):
+            for row in range(42):
                 address = (page << 17) | (col << 11) | 0x700 | (row << 2)
                 mode = run.vram[address:address+4]
                 xbase = col*8 if page == 0 else (55-col)*8

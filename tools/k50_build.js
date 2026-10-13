@@ -65,6 +65,20 @@ var K50Build = (function () {
             requireCondition(a[i] === b[i], name + ' mismatch at byte ' + i);
         }
     }
+    function verifyGameTiming(report) {
+        // MAX+plus II timing table: requested MHz, achieved MHz, optional
+        // Failed/Passed status, clock and endpoints. A Failed 100 MHz request
+        // may still meet our >42 MHz release floor. Never read the requested
+        // frequency or an unrelated clock as the achieved TG42 frequency.
+        var rows = /^\s*fmax\s+\S+\s+[0-9]+(?:\.[0-9]+)?\s+MHz\s+([0-9]+(?:\.[0-9]+)?)\s+MHz\s+(?:(?:Failed|Passed)\s+)?TG42\s+to\s+register\b[^\r\n]*/gim;
+        var match, minimum = Infinity;
+        while ((match = rows.exec(report)) !== null) {
+            minimum = Math.min(minimum, Number(match[1]));
+        }
+        requireCondition(minimum !== Infinity, 'Missing TG42 achieved fmax in timing table');
+        requireCondition(minimum > 42, 'TG42 achieved fmax must exceed 42 MHz; report gives ' + minimum);
+        return minimum;
+    }
     function verify(report, sofSize, ttf, raw, packed, back, variant) {
         var config = target(typeof variant === 'undefined' ? 'GAME_K50' : variant);
         requireCondition(/Project compilation was successful/i.test(report), 'No successful compilation in report');
@@ -72,6 +86,7 @@ var K50Build = (function () {
         var devices = report.match(/^\s*Device:[^\r\n]*/gim) || [];
         requireCondition(devices.length === 1 && new RegExp('^\\s*Device:\\s*' + config.device + '\\s*$', 'i').test(devices[0]),
                          'Report must contain exactly one Device: ' + config.device);
+        if (variant !== 'STANDARD_K50') { verifyGameTiming(report); }
         requireCondition(sofSize > 0 && raw.length > 0 && back.length > 0 && packed.length > 0,
                          'Missing or empty compiler/converter result');
         requireCondition(packed.length <= 65536, 'ACX exceeds four 16 KiB loader pages');
@@ -132,13 +147,16 @@ var K50Build = (function () {
                          'Only STANDARD_K50 may publish the BIOS STREAM.BIN');
         // Revalidate the actual inputs; a marker file alone is not sufficient.
         var raw = io.readBytes(work + '/STREAM50.BIN');
+        var packed = io.readBytes(work + '/K50.ACX');
         verify(io.readText(work + '/SP2_ACEX.rpt'), io.size(work + '/SP2_ACEX.sof'),
                io.readText(work + '/SP2_ACEX.ttf'), raw,
-               io.readBytes(work + '/K50.ACX'), io.readBytes(work + '/roundtrip.bin'));
-        io.copy(work + '/STREAM50.BIN', target);
-        compare(io.readBytes(target), raw, 'Published BIOS stream');
+               packed, io.readBytes(work + '/roundtrip.bin'), 'STANDARD_K50');
+        // Legacy make_k50.bat zero-packed STREAM50.BIN into STREAM.BIN.
+        // Only the separate K30 make.cmd publishes an uncompressed stream.
+        io.copy(work + '/K50.ACX', target);
+        compare(io.readBytes(target), packed, 'Published compressed K50 BIOS stream');
     }
-    return {transformAcf: transformAcf, transformGameVideo: transformGameVideo, parseTtf: parseTtf, verify: verify,
+    return {transformAcf: transformAcf, transformGameVideo: transformGameVideo, parseTtf: parseTtf, verify: verify, verifyGameTiming: verifyGameTiming,
             prepare: prepare, verifyDirectory: verifyDirectory,
             publishStandardStream: publishStandardStream};
 }());
