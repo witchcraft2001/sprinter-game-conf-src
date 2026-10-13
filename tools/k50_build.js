@@ -54,6 +54,30 @@ var K50Build = (function () {
         var stage = /G_EFFECTIVE_X\[\]\.clk = CLK42; G_EFFECTIVE_X\[\]\.ena = \(VCM\[\] == 0\);\s*IF G_APPLY THEN\s*G_EFFECTIVE_X\[\] = G_PENDING\[3\.\.0\]; G_EFFECTIVE_Y\[\] = G_PENDING\[7\.\.4\];\s*ELSE\s*G_EFFECTIVE_X\[\] = G_SCROLL\[3\.\.0\]; G_EFFECTIVE_Y\[\] = G_SCROLL\[7\.\.4\];\s*END IF;\s*G_EFFECTIVE\[\] = \(G_EFFECTIVE_Y\[\],G_EFFECTIVE_X\[\]\);/g;
         requireCondition((text.match(declarations) || []).length === 1 && (text.match(stage) || []).length === 1,
                          'Game scroll pipeline changed; review K50 staging transform');
+        // The same physical/source boundary rule fits K30 with a CT=2 tag.
+        // K50 times better with graphics classification folded into a CT=5
+        // blocking tag. Holding it with MODE0 preserves backtrack behavior.
+        var boundaryDecl = 'G_RASTER_END : DFFE;';
+        var boundaryStage = /G_RASTER_END\.clk = CLK42; G_RASTER_END\.ena = \(VCM\[\] == 4\);\s*G_RASTER_END = \(CT\[5\.\.3\] == 6\);/g;
+        var boundaryApply = /G_APPLY = G_PENDING_VALID & \(\(G_LOCAL_X\[\] == 7\)\s*or \(G_RASTER_END & \(MODE0\[7\.\.5\] != 7\)\)\);/g;
+        requireCondition(text.split(boundaryDecl).length === 2 &&
+                         (text.match(boundaryStage) || []).length === 1 &&
+                         (text.match(boundaryApply) || []).length === 1,
+                         'Game physical boundary changed; review K50 staging transform');
+        text = text.replace(boundaryDecl, 'G_RASTER_BLOCK : DFFE;')
+                   .replace(boundaryStage, 'G_RASTER_BLOCK.clk = CLK42; G_RASTER_BLOCK.ena = G_MODE_CAPTURE;\r\n' +
+                                           '\tG_RASTER_BLOCK = (CT[5..3] != 6) or (VDM3[7..5] == 7);')
+                   .replace(boundaryApply, 'G_APPLY = G_PENDING_VALID & ((G_LOCAL_X[] == 7) or !G_RASTER_BLOCK);');
+        // K30 only holds MODE0 while clipping a backwards border reload.
+        // K50 routes/times better when all descriptor registers share that
+        // enable. Pixel addresses during border may differ; displayed RGB,
+        // blank/IRQ and control acceptance are identical.
+        for (var mode = 1; mode <= 3; mode++) {
+            var enable = 'MODE' + mode + '[].ena = G_CAPTURE;';
+            requireCondition(text.split(enable).length === 2,
+                             'Game border pipeline changed; review K50 staging transform');
+            text = text.replace(enable, 'MODE' + mode + '[].ena = G_MODE_CAPTURE;');
+        }
         return text.replace(declarations, 'G_EFFECTIVE[7..0] : DFFE;')
                    .replace(stage, 'G_EFFECTIVE[].clk = CLK42; G_EFFECTIVE[].ena = (VCM[] == 0);\r\n' +
                                    '\tIF G_APPLY THEN G_EFFECTIVE[] = G_PENDING[];\r\n' +
@@ -87,14 +111,18 @@ var K50Build = (function () {
         requireCondition(devices.length === 1 && new RegExp('^\\s*Device:\\s*' + config.device + '\\s*$', 'i').test(devices[0]),
                          'Report must contain exactly one Device: ' + config.device);
         if (variant !== 'STANDARD_K50') { verifyGameTiming(report); }
-        requireCondition(sofSize > 0 && raw.length > 0 && back.length > 0 && packed.length > 0,
+        requireCondition(sofSize > 0 && raw.length > 0,
                          'Missing or empty compiler/converter result');
-        requireCondition(packed.length <= 65536, 'ACX exceeds four 16 KiB loader pages');
+        requireCondition((config.chip === 'K30' ? raw : packed).length <= 65536,
+                         'ACX exceeds four 16 KiB loader pages');
         var header = [255, 255, 98, 123, config.header, 0], i, j = 0, n, value;
         for (i = 0; i < header.length; i++) {
             requireCondition(raw[i] === header[i], 'Bitstream header is not ACEX ' + config.chip);
         }
         compare(parseTtf(ttf), raw, 'TTF/stream');
+        // K30 loads the raw configuration stream directly, without zero RLE.
+        if (config.chip === 'K30') { return; }
+        requireCondition(back.length > 0 && packed.length > 0, 'Missing or empty compiler/converter result');
         compare(back, raw, 'Roundtrip');
         // Independent strict depacker: do not trust the legacy utility's exit code.
         for (i = 0; i < packed.length; i++) {
@@ -134,13 +162,18 @@ var K50Build = (function () {
     }
     function verifyDirectory(io, work, variant) {
         var config = target(variant), packedName = config.chip + '.packed', acxName = config.chip + '.ACX';
+        var uncompressed = config.chip === 'K30';
         requireCondition(io.readText(work + '/variant.txt').replace(/\s/g, '') === variant, 'Variant mismatch');
         requireCondition(!io.exists(work + '/' + acxName), 'Release ACX already exists; refusing re-verification');
         verify(io.readText(work + '/SP2_ACEX.rpt'), io.size(work + '/SP2_ACEX.sof'),
                io.readText(work + '/SP2_ACEX.ttf'), io.readBytes(work + '/' + config.stream),
-               io.readBytes(work + '/' + packedName), io.readBytes(work + '/roundtrip.bin'), variant);
-        io.copy(work + '/' + packedName, work + '/' + acxName);
-        io.writeText(work + '/package-verification.txt', 'VERIFIED PACKAGING ONLY: ' + variant + '\r\n');
+               uncompressed ? [] : io.readBytes(work + '/' + packedName),
+               uncompressed ? [] : io.readBytes(work + '/roundtrip.bin'), variant);
+        var releaseSource = work + '/' + (uncompressed ? config.stream : packedName);
+        io.copy(releaseSource, work + '/' + acxName);
+        compare(io.readBytes(work + '/' + acxName), io.readBytes(releaseSource), 'Published ACX');
+        io.writeText(work + '/package-verification.txt', 'VERIFIED PACKAGING ONLY: ' + variant +
+                     (uncompressed ? ' RAW (UNCOMPRESSED)' : ' ZERO-RLE') + '\r\n');
     }
     function publishStandardStream(io, work, target) {
         requireCondition(io.readText(work + '/variant.txt').replace(/\s/g, '') === 'STANDARD_K50',

@@ -75,8 +75,10 @@ class Sample:
 
 
 class Video:
-    def __init__(self, ram):
+    def __init__(self, ram, hold_border_data=False):
         self.ram = ram
+        # K50 also holds unused border pixel coordinates for better fitting.
+        self.hold_border_data = hold_border_data
         # A new controller starts a new simulation timeline. Keep memory
         # contents, but reset the address-register power-up state and age.
         ram.address, ram.issued_ns = 0, -100
@@ -91,6 +93,7 @@ class Video:
         self.palette = 0
         self.sample = None
         self.pending = None
+        self.backtrack = False
         self.acceptances = 0
         self.scroll_loads = 0
         self.cpu_address = 0x23450
@@ -124,7 +127,13 @@ class Video:
             # Physical CTV increments at the end of CTH=48 (not at X wrap).
             # Prefetch next byte with a one-cell display-origin correction.
             nx = (self.x + 1 - 8) % 448
-            if self.local_x == 7 and self.pending is not None:
+            if self.local_x == 7:
+                # A border owns the pixels already clipped on its left.
+                # Reloading by >8 bytes can revisit the preceding cell;
+                # keep the border until that cell's remaining tail passes.
+                self.backtrack = (self.pending is not None and border and
+                                  (self.scroll & 15) - (self.pending & 15) > 8)
+            if (self.local_x == 7 or (self.x % 8 == 7 and not border)) and self.pending is not None:
                 self.scroll = self.pending
                 self.pending = None
                 self.scroll_loads += 1
@@ -138,8 +147,10 @@ class Video:
             address, slot = self.request, 'descriptor'
         elif phase == 5:
             banks = self.ram.read_banks(self.now)
-            self.mode = banks[::-1]
-            if self.last != self.request:
+            if not (self.backtrack and self.hold_border_data):
+                self.mode = (self.mode[0] if self.backtrack else banks[3],
+                             banks[2], banks[1], banks[0])
+            if not self.backtrack and self.last != self.request:
                 self.acceptances += 1
                 if self.mode[0] & 4:
                     self.pending = self.mode[3]

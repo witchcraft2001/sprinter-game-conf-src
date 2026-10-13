@@ -35,10 +35,13 @@ if not exist SP2_ACEX.ttf goto failed
 if not exist SP2_ACEX.rpt goto failed
 "%ROOT%\bin\transttf.exe" SP2_ACEX.ttf %STREAM% >> compile.log 2>&1
 if errorlevel 1 goto failed
+rem K30 requires an uncompressed ACX, byte-for-byte equal to STREAM30.BIN.
+if /i "%VARIANT%"=="GAME_K30" goto verify_acx
 "%ROOT%\bin\Altera0pak.exe" %STREAM% %CHIP%.packed >> compile.log 2>&1
 if errorlevel 1 goto failed
 "%ROOT%\bin\Altera0pak.exe" -d %CHIP%.packed roundtrip.bin >> compile.log 2>&1
 if errorlevel 1 goto failed
+:verify_acx
 cscript.exe //nologo "%ROOT%\tools\k50_build.js" Verify "%WORK%" "%VARIANT%" >> compile.log 2>&1
 if errorlevel 1 goto failed
 if /i "%~2"=="EXPORT_STREAM" (
