@@ -203,10 +203,13 @@ class AhdlReadTests(unittest.TestCase):
         program = ReadProgram(SOURCE.read_text())
         # Full reachable sum range, including power-up zero. Independent
         # modulo arithmetic checks the source's partial-bit assignments.
-        for total in range(464):
-            program.state['G_SUM_X'] = total
-            program.set_inputs(CLK42=1)
-            self.assertEqual(program.driver('G_X'), (total - 8) & 511, total)
+        for wrap in (0, 1):
+            for total in range(512):
+                program.state['G_SUM_X'] = total
+                program.state['G_ORIGIN_WRAP'] = wrap
+                program.set_inputs(CLK42=1)
+                self.assertEqual(program.driver('G_X'),
+                                 (total + (440 if wrap else -8)) & 511, (wrap, total))
 
     def test_horizontal_origin_all_positions_and_scrolls(self):
         # Execute the actual coordinate registers, with arithmetic expectations
@@ -381,7 +384,7 @@ class AhdlReadTests(unittest.TestCase):
                      ('G_SCROLL[].ena = (VCM[] == 4) & G_APPLY;',
                       'G_SCROLL[].ena = (VCM[] == 0) & G_APPLY;'),
                      ('TSN_W3.d = (VCM[] != 0);', 'TSN_W3.d = (VCM[1..0] != 0);'),
-                     ('G_SUM_X[8..3] - B"000001"', 'G_SUM_X[8..3] - B"000010"')]
+                     ('G_SUM_X[5..3] - B"001"', 'G_SUM_X[5..3] - B"010"')]
         from tools.game_video_model import descriptor_address
         for old,new in mutations:
             with self.subTest(mutation=old):

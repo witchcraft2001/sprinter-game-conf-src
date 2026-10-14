@@ -46,14 +46,28 @@ var K50Build = (function () {
     function transformGameVideo(text, variant) {
         target(variant);
         requireCondition(variant !== 'STANDARD_K50', 'Standard video must not be transformed');
-        if (variant === 'GAME_K30') { return text; }
-        // K30 keeps four scroll-prefetch registers; K50 benefits from eight.
-        // Exact, checked substitutions keep a single common video source and
-        // preserve all bus phases, CPU strobes and physical timing chains.
         var declarations = /G_EFFECTIVE\[7\.\.0\] : NODE;\s*G_EFFECTIVE_X\[3\.\.0\] : DFFE;\s*G_EFFECTIVE_Y\[3\.\.0\] : NODE;/g;
         var stage = /G_EFFECTIVE_X\[\]\.clk = CLK42; G_EFFECTIVE_X\[\]\.ena = \(VCM\[\] == 0\);\s*IF G_APPLY THEN\s*G_EFFECTIVE_X\[\] = G_PENDING\[3\.\.0\]; G_EFFECTIVE_Y\[\] = G_PENDING\[7\.\.4\];\s*ELSE\s*G_EFFECTIVE_X\[\] = G_SCROLL\[3\.\.0\]; G_EFFECTIVE_Y\[\] = G_SCROLL\[7\.\.4\];\s*END IF;\s*G_EFFECTIVE\[\] = \(G_EFFECTIVE_Y\[\],G_EFFECTIVE_X\[\]\);/g;
         requireCondition((text.match(declarations) || []).length === 1 && (text.match(stage) || []).length === 1,
-                         'Game scroll pipeline changed; review K50 staging transform');
+                         'Game scroll pipeline changed; review K50/K30 staging transform');
+        var fullScroll = 'G_EFFECTIVE[].clk = CLK42; G_EFFECTIVE[].ena = (VCM[] == 0);\r\n' +
+                         '\tIF G_APPLY THEN G_EFFECTIVE[] = G_PENDING[];\r\n' +
+                         '\tELSE G_EFFECTIVE[] = G_SCROLL[]; END IF;';
+        if (variant === 'GAME_K30') {
+            var sumDecl = 'G_SUM_X[8..0] : DFFE;';
+            var sumClock = 'G_SUM_X[].clk = CLK42; G_SUM_Y[].clk = CLK42;';
+            var sumEnable = 'G_SUM_X[].ena = (VCM[] == 5); G_SUM_Y[].ena = (VCM[] == 5);';
+            requireCondition(text.split(sumDecl).length === 2 && text.split(sumClock).length === 2 &&
+                             text.split(sumEnable).length === 2, 'Game X sum changed; review K30 staging transform');
+            return text.replace(sumDecl, 'G_SUM_X[8..0] : NODE;')
+                       .replace(sumClock, 'G_SUM_Y[].clk = CLK42;')
+                       .replace(sumEnable, 'G_SUM_Y[].ena = (VCM[] == 5);')
+                       .replace(declarations, 'G_EFFECTIVE[7..0] : DFFE;')
+                       .replace(stage, fullScroll);
+        }
+        // Both targets register the full scroll; K30 saves X-sum registers.
+        // Exact, checked substitutions keep a single common video source and
+        // preserve all bus phases, CPU strobes and physical timing chains.
         // The same physical/source boundary rule fits K30 with a CT=2 tag.
         // K50 times better with graphics classification folded into a CT=5
         // blocking tag. Holding it with MODE0 preserves backtrack behavior.
@@ -79,9 +93,7 @@ var K50Build = (function () {
             text = text.replace(enable, 'MODE' + mode + '[].ena = G_MODE_CAPTURE;');
         }
         return text.replace(declarations, 'G_EFFECTIVE[7..0] : DFFE;')
-                   .replace(stage, 'G_EFFECTIVE[].clk = CLK42; G_EFFECTIVE[].ena = (VCM[] == 0);\r\n' +
-                                   '\tIF G_APPLY THEN G_EFFECTIVE[] = G_PENDING[];\r\n' +
-                                   '\tELSE G_EFFECTIVE[] = G_SCROLL[]; END IF;');
+                   .replace(stage, fullScroll);
     }
     function compare(a, b, name) {
         requireCondition(a.length === b.length, name + ' length mismatch');

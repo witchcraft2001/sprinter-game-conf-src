@@ -84,7 +84,13 @@ try {
     }
     test('target scroll and border stages preserve bus slots and write pipeline', () => {
         const common = io.readText(root + '/altera/acex/GAME_K50/VIDEO2.TDF');
-        assert.strictEqual(build.transformGameVideo(common, 'GAME_K30'), common);
+        const k30 = build.transformGameVideo(common, 'GAME_K30');
+        assert.ok(k30.includes('G_SUM_X[8..0] : NODE;'));
+        assert.ok(!k30.includes('G_SUM_X[].ena'));
+        const withoutSumStage = t => t.replace(/G_SUM_X\[8\.\.0\] : (?:NODE|DFFE);/, '')
+            .replace('G_SUM_X[].clk = CLK42; ', '').replace('G_SUM_X[].ena = (VCM[] == 5); ', '');
+        assert.ok(k30.includes('G_EFFECTIVE[7..0] : DFFE;'));
+        assert.throws(() => build.transformGameVideo(common.replace('G_SUM_X[8..0] : DFFE;', ''), 'GAME_K30'), /review K30/);
         const k50 = build.transformGameVideo(common, 'GAME_K50');
         assert.ok(k50.includes('G_EFFECTIVE[7..0] : DFFE;'));
         assert.ok(!k50.includes('G_EFFECTIVE_X'));
@@ -106,6 +112,7 @@ try {
             .replace(/G_RASTER_(?:BLOCK|END)\.clk[\s\S]*?(?=\r?\n\r?\n)/, '')
             .replace(/G_APPLY = G_PENDING_VALID[\s\S]*?;/, '');
         assert.strictEqual(withoutScrollStage(k50), withoutScrollStage(common));
+        assert.strictEqual(withoutSumStage(withoutScrollStage(k30)), withoutSumStage(withoutScrollStage(common)));
         assert.throws(() => build.transformGameVideo(common.replace('G_EFFECTIVE_X[3..0] : DFFE;', ''), 'GAME_K50'), /review K50/);
         assert.throws(() => build.transformGameVideo(common, 'STANDARD_K50'), /Standard/);
     });

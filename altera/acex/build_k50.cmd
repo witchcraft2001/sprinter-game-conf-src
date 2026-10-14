@@ -50,7 +50,7 @@ if /i "%~2"=="EXPORT_STREAM" (
 )
 certutil -hashfile %CHIP%.ACX SHA256 > acx-sha256.txt 2>&1
 echo Packaging passed: %WORK%\%CHIP%.ACX
-if not /i "%VARIANT%"=="STANDARD_K50" echo TG42 achieved fmax verified above 42 MHz in the report.
+if /i not "%VARIANT%"=="STANDARD_K50" echo TG42 achieved fmax verified above 42 MHz in the report.
 echo Review fitting and CLK42/derived clock timing in SP2_ACEX.rpt before board testing.
 popd
 exit /b 0

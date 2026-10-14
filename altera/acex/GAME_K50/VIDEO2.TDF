@@ -175,6 +175,8 @@ VARIABLE
 	G_SUM_X[8..0] : DFFE;
 	G_SUM_Y[8..0] : DFFE;
 	G_ORIGIN_WRAP : DFFE;
+	G_ORIGIN_BORROW : NODE;
+	G_ORIGIN_HIGH[1..0] : NODE;
 	G_FRAME_WRAP : DFFE;
 	G_X[8..0] : DFFE;
 	G_Y[8..0] : DFFE;
@@ -517,8 +519,14 @@ IF MODE == "SPRINTER" GENERATE
 	-- Keep the one-cell display origin: the first physical cell follows
 	-- physical cell 55. This correction depends ONLY on raster position,
 	-- never on the scrolled sum. +55 cells equals -1 cell +56 raster cells.
-	IF G_ORIGIN_WRAP THEN G_X[] = (G_SUM_X[8..3] + B"110111",G_SUM_X[2..0]);
-	ELSE G_X[] = (G_SUM_X[8..3] - B"000001",G_SUM_X[2..0]); END IF;
+	-- +55 and -1 cells both decrement the low three cell bits. Split
+	-- the correction so the fitter does not need two six-bit carry chains.
+	-- In the upper three bits +55 contributes -1, in addition to the borrow.
+	G_ORIGIN_BORROW = (G_SUM_X[5..3] == 0);
+	G_ORIGIN_HIGH[] = (GND,G_ORIGIN_WRAP) + (GND,G_ORIGIN_BORROW);
+	G_X[2..0] = G_SUM_X[2..0];
+	G_X[5..3] = G_SUM_X[5..3] - B"001";
+	G_X[8..6] = G_SUM_X[8..6] - (GND,G_ORIGIN_HIGH[]);
 	-- At the actual frame edge 319+1 becomes 0 before adding scroll.
 	-- Low four sum bits then already contain scroll Y. Otherwise retain
 	-- addresses >=320, which select descriptor rows beyond the physical raster.
@@ -580,9 +588,10 @@ IF MODE == "SPRINTER" GENERATE
 		& (G_SCROLL[2..0] > G_PENDING[2..0]);
 	-- CT=6: decide the scroll for the request following the upcoming
 	-- pixel. The new descriptor/pending value is already stable after CT=5.
-	-- Common/K30: register X's offset, save four registers and their enables.
-	-- k50_build.js stages the full eight-bit register for GAME_K50, which
-	-- gives better placement/timing there. Both versions use these same slots.
+	-- The common source registers X's offset. k50_build.js stages the full
+	-- eight-bit register for both targets to shorten the Y timing path.
+	-- K30 also removes the intermediate X-sum register: physical coordinates
+	-- and effective scroll are stable at CT=0..1. Bus slots are unchanged.
 	G_EFFECTIVE_X[].clk = CLK42; G_EFFECTIVE_X[].ena = (VCM[] == 0);
 	IF G_APPLY THEN
 		G_EFFECTIVE_X[] = G_PENDING[3..0]; G_EFFECTIVE_Y[] = G_PENDING[7..4];
