@@ -6,7 +6,9 @@ PARAMETERS
 	UPDATE	= 1,			-- 1 for UPDATE sheet
 	MODE 	= "SPRINTER",	--	or MODE = "SPECTRUM"
 	NMI_ON	= "OFF",		-- "ON" - for use NMI
-	SCREEN_OFF = "NOT_USE"	-- "USE" - for use screen on/off
+	SCREEN_OFF = "NOT_USE",	-- "USE" - for use screen on/off
+	ISA_WAIT = 20,			-- ISA slow cycle: /WAIT is held (ISA_WAIT+1) ticks of CLK42 (~500 ns) after CS_ISA
+	WAIT_OD	= "ISA"			-- /WAIT pin: "ISA" - no active high inside ISA cycles, "ALL" - pure open drain, "OFF" - original
 	);
 
 INCLUDE "lpm_ram_dp";
@@ -231,6 +233,10 @@ VARIABLE
 	WAIT_ROM 	: NODE;
 	WAIT_ROMX	: NODE;
 	WT_R[2..0]	: DFF;
+
+	WAIT_ISA	: NODE;		-- IOCHRDY fix: forced ISA wait
+	WAIT_ISAX	: NODE;
+	WT_I[4..0]	: DFF;
 
 --	BLK_WAIT	: NODE;
 
@@ -602,6 +608,19 @@ IF (UPDATE == 1) GENERATE
 		WHEN B"1XXX" => WT_R[] = 4;
 	END CASE;
 
+	-- IOCHRDY fix: ISA slow cycle. /WAIT is held for ISA_WAIT ticks of CLK42 after CS_ISA,
+	-- so that a card has time to pull IOCHRDY low (ISA spec: up to 356 ns after the command)
+	-- and a "normal" 8-bit cycle (command >= 519 ns, data access <= 467 ns) is satisfied.
+	-- ISA_PORT0 = 1 (window page D1/D3/D5/D7) selects the legacy short cycle (WT_R only).
+	WAIT_ISAX	= LCELL(CS_ISA or ISA_PORT0);
+	WAIT_ISA	= (WAIT_ISAX or DFF((WT_I[] == 0),CLK42,!WAIT_ISAX,));
+	WT_I[].clk	= CLK42;
+	CASE (WAIT_ISAX,(WT_I[] == 0)) IS
+		WHEN B"1X" => WT_I[] = ISA_WAIT;
+		WHEN B"01" => WT_I[] = 0;
+		WHEN B"00" => WT_I[] = WT_I[] - 1;
+	END CASE;
+
 	CS_ISA	 = DFF((!/RF or PRE_ISA),!/MR,,LCELL(CS_ISA or !/MR));
 	CS_ROMT	 = DFF((!/RF or PRE_ROM or !PRE_CASH),!/MR,,LCELL(CS_ROMT or !/MR));
 	CS_CASHT = DFF((!/RF or !PRE_ROM or PRE_CASH),!/MR,,LCELL(CS_CASHT or !/MR));
@@ -653,6 +672,11 @@ ELSE GENERATE
 	WT_R[] = 0;
 
 	WAIT_ROM		= VCC;
+
+	WT_I[].clk	= GND;
+	WT_I[] = 0;
+	WAIT_ISAX		= VCC;
+	WAIT_ISA		= VCC;
 
 	DECODE.BLK_MEM	= GND;
 
@@ -907,11 +931,22 @@ END GENERATE;
 	DECODE./RF		= /RF;
 	DECODE./M1		= /M1;
 
-	/WAIT_ALL		= (DECODE./WAIT & WAIT_ROM & WAIT_ORIG);
+	/WAIT_ALL		= (DECODE./WAIT & WAIT_ROM & WAIT_ORIG & WAIT_ISA);
 
 --	/WAIT			= TRI(DECODE./WAIT,LCELL(!(DECODE./WAIT & DFF(DECODE./WAIT,CLK42,,))));
 
-	/WAIT			= TRI(/WAIT_ALL,LCELL(!/WAIT_ALL));
+	-- IOCHRDY fix: the original TRI(/WAIT_ALL,LCELL(!/WAIT_ALL)) drives an active high for
+	-- one LCELL delay when the wait is released (DATA=1 before OE goes off). With a card
+	-- holding IOCHRDY low through VD12 this pulse can be sampled by the CPU as "/WAIT=1".
+	IF (WAIT_OD == "ALL") GENERATE
+		/WAIT		= TRI(GND,!/WAIT_ALL);				-- pure open drain, never drives high
+	ELSE GENERATE
+		IF (WAIT_OD == "ISA") GENERATE
+			/WAIT		= TRI((/WAIT_ALL & CS_ISA),LCELL(!/WAIT_ALL));	-- 0/Z only while CS_ISA=0
+		ELSE GENERATE
+			/WAIT		= TRI(/WAIT_ALL,LCELL(!/WAIT_ALL));	-- original
+		END GENERATE;
+	END GENERATE;
 
 	DECODE.TEST_R	= TFF(KEYS.kb_ctrl,KEYS.kb_f12,,);
 
