@@ -3,7 +3,7 @@ setlocal EnableExtensions
 rem IOCHRDY research: ACEX firmware variants for the ISA /WAIT experiments
 rem (diagnostics\ISA_IOCHRDY_WAIT.md, section 7).
 rem
-rem   build_iochrdy.bat                 all variants, K30 and K50
+rem   build_iochrdy.bat                 variants O A B C, K30 and K50
 rem   build_iochrdy.bat K30             all variants, K30 only
 rem   build_iochrdy.bat K50 A C         variants A and C, K50 only
 rem
@@ -11,6 +11,11 @@ rem   O - original source (iochrdy\SP2_ACEX_ORIG.TDF), reference build
 rem   A - ISA_WAIT = 20, WAIT_OD = "ISA"   long ISA cycle + no active high in ISA cycles
 rem   B - ISA_WAIT = 20, WAIT_OD = "OFF"   long ISA cycle only
 rem   C - ISA_WAIT = 3,  WAIT_OD = "ISA"   no active high only, cycle almost original
+rem   D - ISA_WAIT = 8,  WAIT_OD = "ISA"   intermediate cycle (~215 ns)
+rem   E - ISA_WAIT = 12, WAIT_OD = "ISA"   intermediate cycle (~310 ns)
+rem   F - ISA_WAIT = 0,  WAIT_OD = "OFF", ISA_CLK_FIX = 1   original cycle + glitch-free DD6 latch clock
+rem   G - ISA_WAIT = 20, WAIT_OD = "ISA", ISA_CLK_FIX = 1   variant A + glitch-free DD6 latch clock
+rem   (A-E are built with ISA_CLK_FIX = 0, i.e. the original RA16/RA17 encoding)
 rem
 rem Result: iochrdy\out\STREAM_<chip>_<variant>.BIN, <chip>_<variant>.rpt/.log
 rem The working copies of K30\ and K50\ are made in iochrdy\w<chip><variant>,
@@ -31,8 +36,12 @@ if /I "%~1"=="O" (set VARS=%VARS% O& goto args_next)
 if /I "%~1"=="A" (set VARS=%VARS% A& goto args_next)
 if /I "%~1"=="B" (set VARS=%VARS% B& goto args_next)
 if /I "%~1"=="C" (set VARS=%VARS% C& goto args_next)
+if /I "%~1"=="D" (set VARS=%VARS% D& goto args_next)
+if /I "%~1"=="E" (set VARS=%VARS% E& goto args_next)
+if /I "%~1"=="F" (set VARS=%VARS% F& goto args_next)
+if /I "%~1"=="G" (set VARS=%VARS% G& goto args_next)
 echo Unknown argument: %1
-echo Usage: build_iochrdy.bat [K30] [K50] [O] [A] [B] [C]
+echo Usage: build_iochrdy.bat [K30] [K50] [O] [A] [B] [C] [D] [E] [F] [G]
 exit /b 1
 :args_next
 shift
@@ -75,10 +84,15 @@ if /I "%VAR%"=="O" (
 	echo original SP2_ACEX.TDF
 	goto compile
 )
+set P_FIX=0
 if /I "%VAR%"=="A" (set P_WAIT=20& set P_OD=ISA)
 if /I "%VAR%"=="B" (set P_WAIT=20& set P_OD=OFF)
 if /I "%VAR%"=="C" (set P_WAIT=3& set P_OD=ISA)
-powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%iochrdy\setparam.ps1" -Path "%WORK%\SP2_ACEX.TDF" -IsaWait %P_WAIT% -WaitOd %P_OD%
+if /I "%VAR%"=="D" (set P_WAIT=8& set P_OD=ISA)
+if /I "%VAR%"=="E" (set P_WAIT=12& set P_OD=ISA)
+if /I "%VAR%"=="F" (set P_WAIT=0& set P_OD=OFF& set P_FIX=1)
+if /I "%VAR%"=="G" (set P_WAIT=20& set P_OD=ISA& set P_FIX=1)
+powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%iochrdy\setparam.ps1" -Path "%WORK%\SP2_ACEX.TDF" -IsaWait %P_WAIT% -WaitOd %P_OD% -ClkFix %P_FIX%
 if errorlevel 1 (set FAILED=1& goto :eof)
 
 :compile
