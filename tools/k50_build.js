@@ -43,58 +43,6 @@ var K50Build = (function () {
         }
         return result;
     }
-    function transformGameVideo(text, variant) {
-        target(variant);
-        requireCondition(variant !== 'STANDARD_K50', 'Standard video must not be transformed');
-        var declarations = /G_EFFECTIVE\[7\.\.0\] : NODE;\s*G_EFFECTIVE_X\[3\.\.0\] : DFFE;\s*G_EFFECTIVE_Y\[3\.\.0\] : NODE;/g;
-        var stage = /G_EFFECTIVE_X\[\]\.clk = CLK42; G_EFFECTIVE_X\[\]\.ena = \(VCM\[\] == 0\);\s*IF G_APPLY THEN\s*G_EFFECTIVE_X\[\] = G_PENDING\[3\.\.0\]; G_EFFECTIVE_Y\[\] = G_PENDING\[7\.\.4\];\s*ELSE\s*G_EFFECTIVE_X\[\] = G_SCROLL\[3\.\.0\]; G_EFFECTIVE_Y\[\] = G_SCROLL\[7\.\.4\];\s*END IF;\s*G_EFFECTIVE\[\] = \(G_EFFECTIVE_Y\[\],G_EFFECTIVE_X\[\]\);/g;
-        requireCondition((text.match(declarations) || []).length === 1 && (text.match(stage) || []).length === 1,
-                         'Game scroll pipeline changed; review K50/K30 staging transform');
-        var fullScroll = 'G_EFFECTIVE[].clk = CLK42; G_EFFECTIVE[].ena = (VCM[] == 0);\r\n' +
-                         '\tIF G_APPLY THEN G_EFFECTIVE[] = G_PENDING[];\r\n' +
-                         '\tELSE G_EFFECTIVE[] = G_SCROLL[]; END IF;';
-        if (variant === 'GAME_K30') {
-            var sumDecl = 'G_SUM_X[8..0] : DFFE;';
-            var sumClock = 'G_SUM_X[].clk = CLK42; G_SUM_Y[].clk = CLK42;';
-            var sumEnable = 'G_SUM_X[].ena = (VCM[] == 5); G_SUM_Y[].ena = (VCM[] == 5);';
-            requireCondition(text.split(sumDecl).length === 2 && text.split(sumClock).length === 2 &&
-                             text.split(sumEnable).length === 2, 'Game X sum changed; review K30 staging transform');
-            return text.replace(sumDecl, 'G_SUM_X[8..0] : NODE;')
-                       .replace(sumClock, 'G_SUM_Y[].clk = CLK42;')
-                       .replace(sumEnable, 'G_SUM_Y[].ena = (VCM[] == 5);')
-                       .replace(declarations, 'G_EFFECTIVE[7..0] : DFFE;')
-                       .replace(stage, fullScroll);
-        }
-        // Both targets register the full scroll; K30 saves X-sum registers.
-        // Exact, checked substitutions keep a single common video source and
-        // preserve all bus phases, CPU strobes and physical timing chains.
-        // The same physical/source boundary rule fits K30 with a CT=2 tag.
-        // K50 times better with graphics classification folded into a CT=5
-        // blocking tag. Holding it with MODE0 preserves backtrack behavior.
-        var boundaryDecl = 'G_RASTER_END : DFFE;';
-        var boundaryStage = /G_RASTER_END\.clk = CLK42; G_RASTER_END\.ena = \(VCM\[\] == 4\);\s*G_RASTER_END = \(CT\[5\.\.3\] == 6\);/g;
-        var boundaryApply = /G_APPLY = G_PENDING_VALID & \(\(G_LOCAL_X\[\] == 7\)\s*or \(G_RASTER_END & \(MODE0\[7\.\.5\] != 7\)\)\);/g;
-        requireCondition(text.split(boundaryDecl).length === 2 &&
-                         (text.match(boundaryStage) || []).length === 1 &&
-                         (text.match(boundaryApply) || []).length === 1,
-                         'Game physical boundary changed; review K50 staging transform');
-        text = text.replace(boundaryDecl, 'G_RASTER_BLOCK : DFFE;')
-                   .replace(boundaryStage, 'G_RASTER_BLOCK.clk = CLK42; G_RASTER_BLOCK.ena = G_MODE_CAPTURE;\r\n' +
-                                           '\tG_RASTER_BLOCK = (CT[5..3] != 6) or (VDM3[7..5] == 7);')
-                   .replace(boundaryApply, 'G_APPLY = G_PENDING_VALID & ((G_LOCAL_X[] == 7) or !G_RASTER_BLOCK);');
-        // K30 only holds MODE0 while clipping a backwards border reload.
-        // K50 routes/times better when all descriptor registers share that
-        // enable. Pixel addresses during border may differ; displayed RGB,
-        // blank/IRQ and control acceptance are identical.
-        for (var mode = 1; mode <= 3; mode++) {
-            var enable = 'MODE' + mode + '[].ena = G_CAPTURE;';
-            requireCondition(text.split(enable).length === 2,
-                             'Game border pipeline changed; review K50 staging transform');
-            text = text.replace(enable, 'MODE' + mode + '[].ena = G_MODE_CAPTURE;');
-        }
-        return text.replace(declarations, 'G_EFFECTIVE[7..0] : DFFE;')
-                   .replace(stage, fullScroll);
-    }
     function compare(a, b, name) {
         requireCondition(a.length === b.length, name + ' length mismatch');
         for (var i = 0; i < a.length; i++) {
@@ -163,8 +111,8 @@ var K50Build = (function () {
                 result = transformAcf(io.readText(source + '/K50/' + name), variant, name);
                 io.writeText(work + '/' + name, result.text);
                 audit = audit.concat(result.audit);
-            } else if (variant !== 'STANDARD_K50' && /^VIDEO2\.TDF$/i.test(name)) {
-                io.writeText(work + '/' + name, transformGameVideo(io.readText(source + '/GAME_K50/VIDEO2.TDF'), variant));
+            } else if (variant !== 'STANDARD_K50' && /^VIDEO2\.(TDF|INC)$/i.test(name)) {
+                io.copy(source + '/GAME_K50/' + name, work + '/' + name);
             } else { io.copy(source + '/K50/' + name, work + '/' + name); }
             copied.push(name);
         }
@@ -201,7 +149,7 @@ var K50Build = (function () {
         io.copy(work + '/K50.ACX', target);
         compare(io.readBytes(target), packed, 'Published compressed K50 BIOS stream');
     }
-    return {transformAcf: transformAcf, transformGameVideo: transformGameVideo, parseTtf: parseTtf, verify: verify, verifyGameTiming: verifyGameTiming,
+    return {transformAcf: transformAcf, parseTtf: parseTtf, verify: verify, verifyGameTiming: verifyGameTiming,
             prepare: prepare, verifyDirectory: verifyDirectory,
             publishStandardStream: publishStandardStream};
 }());

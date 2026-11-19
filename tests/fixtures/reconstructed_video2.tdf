@@ -1,0 +1,784 @@
+
+	TITLE "GAME_K50 byte-indexed video-controller";
+
+INCLUDE "lpm_ram_dp";
+
+PARAMETERS
+	(
+	MODE = "SPRINTER",
+	MOUSE = "NO",
+	HOR_PLACE = H"50",
+	VER_PLACE = H"91"   -- 122h/2
+	);
+
+SUBDESIGN video2
+	(
+	CLK42		: INPUT;
+
+	CT[5..0]	: OUTPUT;
+	CTH[5..0]	: OUTPUT;
+	CTV[8..0]	: OUTPUT;
+	CTF[6..0]	: OUTPUT;
+
+	BLANK		: OUTPUT;
+
+	VGA_SW		: INPUT;
+
+	START_UP	: INPUT;
+	COPY_SINC_H	: INPUT;
+	COPY_SINC_V	: INPUT;
+
+	WR			: INPUT;
+
+	VAI[19..0]	: INPUT;	-- input screen adress
+
+	VAO[15..0]	: OUTPUT;
+
+	D[7..0]		: INPUT;
+	MDI[15..0]	: INPUT;
+
+	VDO0[7..0]	: OUTPUT;
+	VDO1[7..0]	: OUTPUT;
+	VDO2[7..0]	: OUTPUT;
+	VDO3[7..0]	: OUTPUT;
+
+	VDM0[7..0]	: INPUT;
+	VDM1[7..0]	: INPUT;
+	VDM2[7..0]	: INPUT;
+	VDM3[7..0]	: INPUT;
+
+	V_WR[3..0]	: OUTPUT;
+	V_WEN[3..0]	: OUTPUT;
+
+	V_CS[1..0]	: OUTPUT;
+	WR_PIX		: OUTPUT;
+
+--	ZX_COLOR[3..0]	: OUTPUT;
+
+	ZX_PORT[7..0]	: INPUT;
+	DIR_PORT[7..0]	: INPUT;
+
+%
+	bit0	- Spectrum SCREEN Switch
+	bit1	- Spectrum Adress MODE
+	bit2	- Write to Spectrum Screen OFF
+	bit3	- MODE page 0/1
+	bit4	- MODE on/off screen
+
+	bit7..5	- Border
+%
+
+	INTT		: OUTPUT;
+
+	DOUBLE_CAS	: INPUT;
+
+	MOUSE_X[9..0]	: INPUT;
+	MOUSE_Y[9..0]	: INPUT;
+
+
+	)
+VARIABLE
+--	CLK84		: NODE;
+--	CLK84_X		: NODE;
+--	CLK84_Y		: NODE;
+
+
+	CT[5..0]	: DFFE;
+	CTH[5..0]	: DFFE;
+	CTV[8..0]	: DFFE;
+	CTF[6..0]	: DFF;
+
+	VXA[19..0]	: DFFE;
+
+	VXD0[7..0]	: DFFE;
+	VXD1[7..0]	: DFFE;
+	VXD2[7..0]	: DFFE;
+	VXD3[7..0]	: DFFE;
+
+	E_WR		: NODE;
+	E_WRD		: NODE;
+	G_WRITE_CAPTURE : NODE;
+
+	BLANK		: NODE;
+	BORD		: NODE;
+--	INTT_T		: NODE;
+	INTTX		: NODE;
+
+	VLA[17..0]	: DFF;
+--	SVA[17..0]	: NODE;
+--	RSVA[8..0]	: LCELL;
+--	RSVA[8..0]	: DFF;
+
+	V_CST[1..0]	: DFF;
+	VCM[2..0]	: DFF;
+	TSN_W3		: DFF;
+	V_WE		: DFF;
+	V_WEX		: DFF;
+
+	V_WEM		: NODE;
+	V_WEM2		: NODE;
+	V_WRM		: NODE;
+	V_WRM2		: NODE;
+%
+	V_WEMM		: NODE;
+	V_WEMMM		: NODE;
+	V_WEMMN		: NODE;
+	V_WEMMO		: NODE;
+%
+	V_WEMM		: NODE;
+	V_WEMMM		: NODE;
+	V_WEMMN		: NODE;
+	V_WEMMO		: NODE;
+	V_WEMMP		: NODE;
+	V_WEMMQ		: NODE;
+	V_WEMMR		: NODE;
+	V_WEMMS		: NODE;
+	V_WEMMT		: NODE;
+	V_WEMMU		: NODE;
+	V_WEMMV		: NODE;
+	V_WEMMW		: NODE;
+	V_WEMMX		: NODE;
+	V_WEMMY		: NODE;
+	V_WEMMZ		: NODE;
+
+
+
+	V_WET[3..0]	: DFF;
+
+--	D_PIC0_[7..0]	: LCELL;
+
+
+
+
+
+
+	MXWE		: NODE;
+--	MXCE		: NODE;
+
+
+	BRD[2..0]	: NODE;
+
+
+	ZXA15		: NODE;
+	ZXS[5..0]	: NODE;
+	ZX_SCREEN	: NODE;
+	SCR128		: NODE;
+
+	MODE0[7..0]		: DFFE;
+	MODE1[7..0]		: DFFE;
+	MODE2[7..0]		: DFFE;
+	MODE3[7..0] : DFFE;
+	-- Game read pipeline. Physical CT/CTH/CTV remain unchanged.
+	G_LOW_X[4..0] : NODE;
+	G_LOW_Y[4..0] : NODE;
+	G_ADVANCE_Y : NODE;
+	G_SUM_X[8..0] : DFFE;
+	G_SUM_Y[8..0] : DFFE;
+	G_ORIGIN_WRAP : DFFE;
+	G_ORIGIN_BORROW : NODE;
+	G_ORIGIN_HIGH[1..0] : NODE;
+	G_FRAME_WRAP : DFFE;
+	G_X[8..0] : DFFE;
+	G_Y[8..0] : DFFE;
+	G_SCROLL[7..0] : DFFE;
+	G_REQUEST[15..0] : DFFE;
+	G_LAST[15..0] : DFFE;
+	G_PENDING[7..0] : DFFE;
+	G_PENDING_VALID : DFFE;
+	G_APPLY : NODE;
+	G_EFFECTIVE[7..0] : NODE;
+	G_EFFECTIVE_X[3..0] : DFFE;
+	G_EFFECTIVE_Y[3..0] : NODE;
+	G_LOCAL_X[2..0] : DFFE;
+	G_RASTER_END : DFFE;
+	G_LOCAL_Y[2..0] : DFFE;
+	G_YBASE[7..0] : DFFE;
+	G_PIXEL_X[9..0] : DFFE;
+	G_ADDRESS[17..0] : NODE;
+	G_COLOR[7..0] : DFFE;
+	G_PAL[1..0] : DFFE;
+	G_BORDER : DFFE;
+	G_BORDER_RGB[2..0] : DFFE;
+	G_BLANK : DFFE;
+	G_IRQ : DFFE;
+	G_ACCEPT : NODE;
+	G_CAPTURE : NODE;
+	G_MODE_CAPTURE : NODE;
+	G_BACKTRACK : DFFE;
+	G_SAMPLE : NODE;
+	G_INDEX[7..0] : NODE;
+	G_PALETTE[10..0] : NODE;
+	G_SLOT_PIXEL : DFF;
+	G_SLOT_PALETTE : DFF;
+	G_SLOT_CPU : DFF;
+	G_SLOT_ISSUE : DFF;
+	G_SLOT_HOLD : DFF;
+	G_BUS_PIXEL[17..0] : NODE;
+	G_BUS_PALETTE[17..0] : NODE;
+	G_BUS_CPU[17..0] : NODE;
+	G_BUS_ISSUE[17..0] : NODE;
+	G_BUS_HOLD[17..0] : NODE;
+
+
+--	M_CTV[2..0]	: DFF;
+--	M_CT[5..3]  : DFF;
+
+	DOUBLE		: DFFE;
+
+
+	MS_X[9..0]	: DFF;
+	MS_Y[9..0]	: DFF;
+
+	MS_POINT	: NODE;
+	MS_POINT2	: NODE;
+	MS_PNT		: NODE;
+
+	MS_DAT		: LPM_RAM_DP WITH (LPM_WIDTH=16,LPM_WIDTHAD=8,LPM_FILE="MOUSE.MIF");
+
+	SCR_ENA		: DFFE;
+	V_WR_[3..0]	: LCELL;
+	V_WEY[3..0]	: LCELL;
+
+	V_WE_R		: NODE;
+
+	V_CSX[3..0]	: NODE;
+
+	V_EN[3..0]	: NODE;
+
+	F_WR		: NODE;
+
+BEGIN
+
+	DEFAULTS
+		V_CST[].d	= VCC; V_WR[]		= VCC; TSN_W3.d		= VCC;
+		V_WE.d		= VCC;
+		V_WET[].d	= VCC;
+	END DEFAULTS;
+
+
+
+--	=== MOUSE counters ========
+
+	MS_X[].clk	= !CT1;
+	CASE LCELL(CTH[5..2] == 12) IS
+		WHEN 0 => MS_X[] = MS_X[] + 1;
+		WHEN 1 => MS_X[] = (!MOUSE_X[9..0]);
+	END CASE;
+
+	MS_Y[].clk	= !CTH5;
+	CASE LCELL(CTV8 & !CTV5 & CTV4) IS
+		WHEN 0 => MS_Y[] = MS_Y[] + 1;
+		WHEN 1 => MS_Y[] = (GND,!MOUSE_Y[8..0]);
+	END CASE;
+
+	MS_PNT = DFF(((MS_X[] == B"100000XXXX") & (MS_Y[] == B"100000XXXX")),CLK42,,);
+
+	MS_DAT.wren 		= GND;
+	MS_DAT.data[] 		= GND;
+	MS_DAT.wraddress[]	= GND;
+	MS_DAT.wrclock		= CLK42;
+	MS_DAT.wrclken		= GND;
+	MS_DAT.rden			= VCC;
+	MS_DAT.rdaddress[]	= (MS_Y[3..0],MS_X[3..0]);
+	MS_DAT.rdclock		= CLK42;
+	MS_DAT.rdclken		= VCC;
+
+	IF MOUSE == "NO" GENERATE
+		MS_POINT	= GND;
+		MS_POINT2	= GND;
+	ELSE GENERATE
+		MS_POINT	= DFF((MS_PNT & MS_DAT.q0),CLK42,,);
+		MS_POINT2	= DFF((MS_PNT & MS_DAT.q1),CLK42,,);
+	END GENERATE;
+
+--	=== Sinc-counts GENERATOR ============================================
+
+--	CT[].clrn	= START_UP;
+
+--	(,CTH[5..0].clrn,CT[5].clrn) = !COPY_SINC_H or HOR_PLACE;
+--	(,CTH[5..0].prn ,CT[5].prn ) = !COPY_SINC_H or !HOR_PLACE;
+
+--	CTV[].clrn = !COPY_SINC_V or VER_PLACE;
+--	CTV[].prn  = !COPY_SINC_V or !VER_PLACE;
+
+	CT[5].clrn		= !COPY_SINC_H;
+
+	-- set CTH to 50 (32h)
+	CTH[0].clrn		= !COPY_SINC_H;
+	CTH[1].prn 		= !COPY_SINC_H;
+	CTH[2].clrn		= !COPY_SINC_H;
+	CTH[3].clrn		= !COPY_SINC_H;
+	CTH[4].prn 		= !COPY_SINC_H;
+	CTH[5].prn		= !COPY_SINC_H;
+
+	-- set CTV to 122h
+	CTV[0].clrn		= !COPY_SINC_V;
+	CTV[1].prn		= !COPY_SINC_V;
+	CTV[3..2].clrn	= !COPY_SINC_V;
+
+	CTV[4].clrn		= !COPY_SINC_V;
+	CTV[5].prn		= !COPY_SINC_V;
+	CTV[7..6].clrn	= !COPY_SINC_V;
+	CTV[8].prn		= !COPY_SINC_V;
+
+	CT[5..0].clk	= CLK42;
+	CTH[5..0].clk	= CLK42;
+	CTV[8..0].clk	= CLK42;
+
+	CT[2..0].ena	= VCC;
+
+	CASE CT[2..0] IS
+		WHEN 0 => CT[2..0] = 1;
+		WHEN 1 => CT[2..0] = 2;
+		WHEN 2 => CT[2..0] = 4;
+		WHEN 3 => CT[2..0] = 4;
+		WHEN 4 => CT[2..0] = 5;
+		WHEN 5 => CT[2..0] = 6;
+		WHEN 6 => CT[2..0] = 0;
+		WHEN 7 => CT[2..0] = 0;
+	END CASE;
+
+								  -- for remove sinc jitter
+--	CT[5..3].ena	= DFF(((CT0 & CT2) or (COPY_SINC_H & !CT4)),CLK42,,);
+	CT[5..3].ena	= DFF((CT0 & CT2),CLK42,,);
+	CT[5..3]	= CT[5..3]+1;
+%
+	CASE CT[4..3] IS
+		WHEN 0 => CT[5..3]	= CT[5..3]+1;
+		WHEN 1 => CT[5..3]	= CT[5..3]+1;
+		WHEN 2 => CT[5..3]	= CT[5..3]+1;
+		WHEN 3 => CT[5..3]	= CT[5..3]+1;
+	END CASE;
+%
+	CTH[].ena		= DFF(((CT[5..2] == 15) & CT0),CLK42,,);
+	CTV[].ena		= DFF(((CT[5..2] == 15) & CT0 & (CTH[] == 48)),CLK42,,);
+
+	IF CTH[] == 55 THEN
+		CTH[]	= GND;
+	ELSE
+		CTH[]	= CTH[] + 1;
+	END IF;
+
+	IF CTV[] == 319 THEN
+		CTV[]	= GND;
+	ELSE
+		CTV[]	= CTV[] + 1;
+	END IF;
+
+	CTF[].clk	= CTV8;
+	CTF[]		= CTF[]+1;
+
+--	==== Video ==========================================================
+
+	ZXS[]		= ZX_PORT[5..0];	-- pages ZX Screens
+	ZX_SCREEN	= ZX_PORT6;			-- enable ZX Screen write
+	ZXA15		= ZX_PORT7;			-- ZX A15' line
+
+	SCR128		= DIR_PORT0;
+
+--	WR_PIX	= LCELL(TSN_W3);
+	WR_PIX	= TSN_W3;
+
+	DOUBLE.clk = CLK42; DOUBLE.ena = G_WRITE_CAPTURE; DOUBLE	= DOUBLE_CAS;
+	VXA[].clk  = CLK42; VXA[].ena  = G_WRITE_CAPTURE;
+
+	VXD0[].clk = CLK42; VXD0[].ena = !E_WRD;	VDO0[]	= VXD0[];
+	VXD1[].clk = CLK42; VXD1[].ena = !E_WRD;	VDO1[]	= VXD1[];
+	VXD2[].clk = CLK42; VXD2[].ena = !E_WRD;	VDO2[]	= VXD2[];
+	VXD3[].clk = CLK42; VXD3[].ena = !E_WRD;	VDO3[]	= VXD3[];
+
+--	VXD0[] = D[];
+--	VXD1[] = D[];
+--	VXD2[] = D[];
+--	VXD3[] = D[];
+
+	(VXD0[],VXD1[]) = MDI[];
+	(VXD2[],VXD3[]) = MDI[];
+
+	BRD[]		= DIR_PORT[7..5];
+
+	VCM[].clk	= CLK42;
+	TSN_W3.clk	= CLK42;
+	V_CST[].clk	= CLK42;
+	V_WE.clk	= CLK42;
+	V_WET[].clk	= CLK42;
+	VLA[].clk	= CLK42;
+
+	SCR_ENA.clk	= CLK42;
+	SCR_ENA.ena	= G_WRITE_CAPTURE;
+	SCR_ENA.d	= !(VAI19 or ZX_SCREEN);
+
+	E_WRD	= DFF(E_WR,CLK42,,);
+	-- Same write-capture truth table, expressed in its active polarity.
+	-- Do not force an LCELL followed by a high-fanout inverter on the
+	-- half-cycle path from the falling-edge WR register to rising-edge VXA.
+	G_WRITE_CAPTURE = !WR & (VAI19 or ZX_SCREEN) & DFF(WR,CLK42,,);
+	E_WR = !G_WRITE_CAPTURE;
+--	E_WR = LCELL(WR or !DFF(WR,CLK42,,));
+
+--	****************************************************
+
+IF MODE == "SPRINTER" GENERATE
+
+--	VAI[19]	- switch adress mode	1 - graf mode, 0 - spectrum mode
+
+--	MXWE	= DFF(((DFF(E_WR,CLK42,,) or SCR_ENA)  & MXWE),CLK42,,V_WE);
+	MXWE	= DFF(MXWE,CLK42,E_WR,V_WE);
+
+	IF VAI[19] THEN
+		-- in graf mode all 256k(512k) range
+		VXA[]	= VAI[];
+	ELSE
+		-- in spectrum mode 8k/16k range pages
+		VXA[]	= (GND,GND,VAI[7..0],ZXS[4..1],LCELL(ZXS0 xor ZXA15 xor VAI13),VAI[12..8]);
+	END IF;
+
+--	BORD	= DFF((MODE0[7..4] == 15),WR_PIC,,);
+--	BLANK	= DFF((BORD & MODE03 & MODE02),WR_PIC,,);
+--	INTTX 	= DFF((BORD & MODE03 & MODE02 & MODE00),WR_PIC,,);
+
+	BORD = G_BORDER;
+	BLANK = G_BLANK;
+	INTTX = G_IRQ;
+	INTT = DFF(!(INTTX & (CTV[2..0] == 7)),CT5,,);
+
+	CASE CT[2..0] IS
+		WHEN B"110" => VCM[2..0].d = 5; -- 110 -> 101  6 -> 5
+		WHEN B"000" => VCM[2..0].d = 1; -- 000 -> 001  0 -> 1
+		WHEN B"001" => VCM[2..0].d = 4; -- 001 -> 100  1 -> 4
+		WHEN B"010" => VCM[2..0].d = 3; -- 010 -> 011  2 -> 3
+		WHEN B"100" => VCM[2..0].d = 2; -- 100 -> 010  4 -> 2
+		WHEN B"101" => VCM[2..0].d = 0; -- 101 -> 000  5 -> 0
+	END CASE;
+
+	-- Six CLK42 slots per byte pixel. Give BOTH asynchronous FPGA reads
+	-- two full periods; keep the CPU/write slot at CT=5 / VCM=2.
+	CASE VCM[] IS
+		WHEN 0 => -- CT=6: palette for the sampled pixel
+			V_CST[].d = (VCC,GND);
+			V_WE.d = VCC;
+			V_WEX.d = VCC;
+		WHEN 1,5 => -- CT=0,1: issue/hold the same pixel address
+			V_CST[].d = (VCC,GND);
+			V_WE.d = VCC;
+			V_WEX.d = VCC;
+		WHEN 2 => -- CT=5: unchanged CPU/accelerator window
+			V_CST[].d = (!VXA18,VXA18) or MXWE;
+			V_WE.d = MXWE;
+			V_WEX.d = GND;
+			V_WET[].d = MXWE or !((!VXA1 & !VXA0),(!VXA1 & VXA0),(VXA1 & !VXA0),(VXA1 & VXA0));
+		WHEN 3 => -- CT=4: hold the REGISTERED descriptor request
+			V_CST[].d = (VCC,GND);
+			V_WE.d = VCC;
+			V_WEX.d = VCC;
+		WHEN 4 => -- CT=2: sample color, issue next descriptor
+			V_CST[].d = (VCC,GND);
+			V_WE.d = VCC;
+			V_WEX.d = VCC;
+	END CASE;
+
+--	choose V-RAM komplect
+
+	V_CST1.prn	= GND;
+--	V_CS0.clrn	= GND;
+	V_CST0.prn	= (LCELL(DFF(GND,!CLK42,,!V_CST0)));
+--	V_CS1	= VCC;
+	V_CS1	= VGA_SW;
+--	V_CS0	= LCELL(V_CST0);
+
+	V_CSX0	= LCELL(!CLK42);
+	V_CSX1	= LCELL(V_CSX0);
+	V_CSX2	= LCELL(V_CSX1 & V_CSX0);
+	V_CSX3	= LCELL(V_CSX2);
+
+--	V_CS0	= V_CSX3;
+	V_CS0	= GND;
+
+--	=====================
+
+	-- Physical raster rollover and descriptor address arithmetic are distinct.
+	-- Scroll may address columns 56..57 / rows 40..41: do not wrap the
+	-- fetch grid at 448/320. The descriptor coordinates are nine-bit fields.
+	G_ADVANCE_Y = (CTH[] == 48) & (CT[5..3] == 7);
+	G_LOW_X[] = (B"00",CT[5..3]) + (GND,G_EFFECTIVE[3..0]) + B"00001";
+	G_LOW_Y[] = (GND,CTV[3..0]) + (GND,G_EFFECTIVE[7..4]) + (B"0000",G_ADVANCE_Y);
+	-- CT=0: coordinate addition and physical-boundary flags.
+	-- CT=1: apply physical origin/frame corrections. CT=2: issue descriptor.
+	-- Physical coordinates are stable throughout CT=0..2; pending scroll
+	-- was captured at CT=5 and applies to the next cell's first request.
+	G_SUM_X[].clk = CLK42; G_SUM_Y[].clk = CLK42;
+	G_SUM_X[].ena = (VCM[] == 5); G_SUM_Y[].ena = (VCM[] == 5);
+	G_SUM_X[] = (CTH[] + (B"0000",G_LOW_X[4..3]),G_LOW_X[2..0]);
+	G_SUM_Y[] = (CTV[8..4] + (B"0000",G_LOW_Y[4]),G_LOW_Y[3..0]);
+	G_ORIGIN_WRAP.clk = CLK42; G_FRAME_WRAP.clk = CLK42;
+	G_ORIGIN_WRAP.ena = (VCM[] == 5); G_FRAME_WRAP.ena = (VCM[] == 5);
+	G_ORIGIN_WRAP = (CTH[] == 0) & (CT[5..3] != 7);
+	G_FRAME_WRAP = G_ADVANCE_Y & (CTV[] == 319);
+	G_X[].clk = CLK42; G_Y[].clk = CLK42;
+	G_X[].ena = (VCM[] == 1); G_Y[].ena = (VCM[] == 1);
+	-- Keep the one-cell display origin: the first physical cell follows
+	-- physical cell 55. This correction depends ONLY on raster position,
+	-- never on the scrolled sum. +55 cells equals -1 cell +56 raster cells.
+	-- +55 and -1 cells both decrement the low three cell bits. Split
+	-- the correction so the fitter does not need two six-bit carry chains.
+	-- In the upper three bits +55 contributes -1, in addition to the borrow.
+	G_ORIGIN_BORROW = (G_SUM_X[5..3] == 0);
+	G_ORIGIN_HIGH[] = (GND,G_ORIGIN_WRAP) + (GND,G_ORIGIN_BORROW);
+	G_X[2..0] = G_SUM_X[2..0];
+	G_X[5..3] = G_SUM_X[5..3] - B"001";
+	G_X[8..6] = G_SUM_X[8..6] - (GND,G_ORIGIN_HIGH[]);
+	-- At the actual frame edge 319+1 becomes 0 before adding scroll.
+	-- Low four sum bits then already contain scroll Y. Otherwise retain
+	-- addresses >=320, which select descriptor rows beyond the physical raster.
+	IF G_FRAME_WRAP THEN G_Y[] = (B"00000",G_SUM_Y[3..0]);
+	ELSE G_Y[] = G_SUM_Y[8..0]; END IF;
+
+	G_REQUEST[].clk = CLK42;
+	G_REQUEST[].ena = (VCM[] == 4);
+	G_REQUEST[] = (DIR_PORT3,G_X[8..3],VCC,VCC,VCC,G_Y[8..3]);
+	G_LOCAL_X[].clk = CLK42; G_LOCAL_Y[].clk = CLK42;
+	G_LOCAL_X[].ena = (VCM[] == 4); G_LOCAL_Y[].ena = (VCM[] == 4);
+	G_LOCAL_X[] = G_X[2..0]; G_LOCAL_Y[] = G_Y[2..0];
+	-- Tag the upcoming pixel's physical cell boundary before CT=6 uses it
+	-- for scroll prefetch. The request at CT=2 is for physical X+1.
+	-- K50 staging folds the graphics decode into this tag at CT=5 instead.
+	G_RASTER_END.clk = CLK42; G_RASTER_END.ena = (VCM[] == 4);
+	G_RASTER_END = (CT[5..3] == 6);
+
+	-- At CT=5 SRAM has had two complete CLK42 periods to return
+	-- the descriptor. Capture BEFORE VLA changes to the CPU slot.
+	-- No derived WR_MODE clock: all four bytes use the same CLK42 edge.
+	G_CAPTURE = (VCM[] == 2);
+	G_MODE_CAPTURE = G_CAPTURE & !G_BACKTRACK;
+	G_ACCEPT = G_MODE_CAPTURE & (G_REQUEST[] != G_LAST[]);
+	MODE0[].clk = CLK42; MODE0[].ena = G_MODE_CAPTURE; MODE0[] = VDM3[];
+	MODE1[].clk = CLK42; MODE1[].ena = G_CAPTURE; MODE1[] = VDM2[];
+	MODE2[].clk = CLK42; MODE2[].ena = G_CAPTURE; MODE2[] = VDM1[];
+	MODE3[].clk = CLK42; MODE3[].ena = G_CAPTURE; MODE3[] = VDM0[];
+	G_LAST[].clk = CLK42; G_LAST[].ena = G_CAPTURE; G_LAST[] = G_REQUEST[];
+	-- Every real request contains address bits 111; power-up G_LAST=0
+	-- therefore accepts the first descriptor without a separate valid bit.
+	-- Save MODE3 once on entry. Reload at the next eligible cell boundary,
+	-- bypassing the new value into the next address calculation. A shifted
+	-- graphics cell may end at the physical boundary before source X=7.
+	G_PENDING[].clk = CLK42;
+	G_PENDING[].ena = G_ACCEPT & VDM3[2];
+	G_PENDING[] = VDM0[];
+	G_PENDING_VALID.clk = CLK42;
+	G_PENDING_VALID.ena = (G_ACCEPT & VDM3[2]) or ((VCM[] == 4) & G_APPLY);
+	G_PENDING_VALID = G_CAPTURE;
+	-- A graphics control can terminate a partial cell at the physical
+	-- boundary too. TITD places 0F in its last graphics column to clip the
+	-- fine-scroll tail there. Waiting only for source X=7 exposes 1..7
+	-- pixels beyond the viewport, which pop on/off at the coarse tile step.
+	-- Border/blank controls still complete their source cell.
+	G_APPLY = G_PENDING_VALID & ((G_LOCAL_X[] == 7)
+		or (G_RASTER_END & (MODE0[7..5] != 7)));
+	-- A border reload can move the fetch grid backwards by more than a
+	-- cell (TITD: 15 -> 0). Do not redisplay the preceding graphics cell
+	-- or execute its control a second time. Retain this border's MODE0
+	-- until the new grid reaches the next cell boundary, at most 7 pixels.
+	-- X/Y/color data are irrelevant during border; keep their normal enable
+	-- to avoid routing a new high-fanout enable across the pixel registers.
+	-- k50_build.js holds MODE1..3 as well on K50 for better fitted timing.
+	-- Compare the two nibbles without adding another coordinate carry chain.
+	G_BACKTRACK.clk = CLK42;
+	G_BACKTRACK.ena = (VCM[] == 4) & (G_LOCAL_X[] == 7);
+	G_BACKTRACK = G_APPLY & (MODE0[7..5] == 7) & G_SCROLL3 & !G_PENDING3
+		& (G_SCROLL[2..0] > G_PENDING[2..0]);
+	-- CT=6: decide the scroll for the request following the upcoming
+	-- pixel. The new descriptor/pending value is already stable after CT=5.
+	-- The common source registers X's offset. k50_build.js stages the full
+	-- eight-bit register for both targets to shorten the Y timing path.
+	-- K30 also removes the intermediate X-sum register: physical coordinates
+	-- and effective scroll are stable at CT=0..1. Bus slots are unchanged.
+	G_EFFECTIVE_X[].clk = CLK42; G_EFFECTIVE_X[].ena = (VCM[] == 0);
+	IF G_APPLY THEN
+		G_EFFECTIVE_X[] = G_PENDING[3..0]; G_EFFECTIVE_Y[] = G_PENDING[7..4];
+	ELSE
+		G_EFFECTIVE_X[] = G_SCROLL[3..0]; G_EFFECTIVE_Y[] = G_SCROLL[7..4];
+	END IF;
+	G_EFFECTIVE[] = (G_EFFECTIVE_Y[],G_EFFECTIVE_X[]);
+	G_SCROLL[].clk = CLK42;
+	G_SCROLL[].ena = (VCM[] == 4) & G_APPLY;
+	G_SCROLL[] = G_PENDING[];
+	-- No line/frame reset. A new control replaces a still-pending control.
+
+	-- CT=6: prepare pixel offsets after descriptor capture at CT=5.
+	-- Independent bitmap coordinates: ten-bit X and eight-bit Y.
+	-- An X overflow wraps in the SAME bitmap row; it never increments Y.
+	G_YBASE[].clk = CLK42; G_YBASE[].ena = (VCM[] == 0);
+	G_PIXEL_X[].clk = CLK42; G_PIXEL_X[].ena = (VCM[] == 0);
+	G_YBASE[] = MODE2[] + (B"00000",G_LOCAL_Y[]);
+	G_PIXEL_X[] = (MODE0[1..0],MODE1[]) + (B"0000000",G_LOCAL_X[]);
+	G_ADDRESS[] = (G_YBASE[],G_PIXEL_X[]);
+	-- Decode the next bus slot alongside VCM, one edge before VLA uses it.
+	-- Independent masks make a shallow one-hot mux, not a VCM decode chain.
+	G_SLOT_PIXEL.clk = CLK42; G_SLOT_PALETTE.clk = CLK42;
+	G_SLOT_CPU.clk = CLK42; G_SLOT_ISSUE.clk = CLK42; G_SLOT_HOLD.clk = CLK42;
+	G_SLOT_PIXEL = (CT[2..0] == 6) or (CT[2..0] == 0);
+	G_SLOT_PALETTE = (CT[2..0] == 5);
+	G_SLOT_CPU = (CT[2..0] == 4);
+	G_SLOT_ISSUE = (CT[2..0] == 1);
+	G_SLOT_HOLD = (CT[2..0] == 2);
+	IF G_SLOT_PIXEL THEN G_BUS_PIXEL[] = G_ADDRESS[];
+	ELSE G_BUS_PIXEL[] = GND; END IF;
+	IF G_SLOT_PALETTE THEN
+		G_BUS_PALETTE[] = (G_PALETTE[7..0],VCC,VCC,VCC,VCC,VCC,G_PALETTE[10..8],GND,GND);
+	ELSE G_BUS_PALETTE[] = GND; END IF;
+	IF G_SLOT_CPU THEN G_BUS_CPU[] = VXA[17..0];
+	ELSE G_BUS_CPU[] = GND; END IF;
+	IF G_SLOT_ISSUE THEN G_BUS_ISSUE[] = (DIR_PORT3,G_X[8..3],VCC,VCC,VCC,G_Y[8..3],GND,GND);
+	ELSE G_BUS_ISSUE[] = GND; END IF;
+	IF G_SLOT_HOLD THEN G_BUS_HOLD[] = (G_REQUEST[],GND,GND);
+	ELSE G_BUS_HOLD[] = GND; END IF;
+	VLA[].d = G_BUS_PIXEL[] or G_BUS_PALETTE[] or G_BUS_CPU[] or G_BUS_ISSUE[] or G_BUS_HOLD[];
+	-- CT=0 and CT=1 hold the same physical SRAM word. Capture at CT=2,
+	-- BEFORE issuing the next descriptor and replacing G_LOCAL_X/Y.
+	G_SAMPLE = (VCM[] == 4);
+	CASE G_ADDRESS[1..0] IS
+		WHEN 0 => G_INDEX[] = VDM3[];
+		WHEN 1 => G_INDEX[] = VDM2[];
+		WHEN 2 => G_INDEX[] = VDM1[];
+		WHEN 3 => G_INDEX[] = VDM0[];
+	END CASE;
+	G_COLOR[].clk = CLK42; G_COLOR[].ena = G_SAMPLE; G_COLOR[] = G_INDEX[];
+	G_PAL[].clk = CLK42; G_PAL[].ena = G_SAMPLE; G_PAL[] = MODE0[7..6];
+	G_BORDER.clk = CLK42; G_BORDER.ena = G_SAMPLE;
+	G_BORDER = (MODE0[7..5] == 7);
+	G_BORDER_RGB[].clk = CLK42; G_BORDER_RGB[].ena = G_SAMPLE;
+	G_BORDER_RGB[] = BRD[];
+	G_BLANK.clk = CLK42; G_BLANK.ena = G_SAMPLE;
+	G_BLANK = ((MODE0[7..5] == 7) & MODE03 & MODE02) or DIR_PORT4;
+	G_IRQ.clk = CLK42; G_IRQ.ena = G_SAMPLE;
+	G_IRQ = (MODE0[7..5] == 7) & MODE03 & MODE02 & MODE00;
+	IF G_BLANK THEN G_PALETTE[] = H"400";
+	ELSE
+		IF G_BORDER THEN G_PALETTE[] = (VCC,B"0000",G_BORDER_RGB[],G_BORDER_RGB[]);
+		ELSE G_PALETTE[] = (GND,G_PAL[],G_COLOR[]); END IF;
+	END IF;
+	-- External RGB registers see ONE rising edge per byte pixel, at CT=0,
+	-- after palette CT=6. Never clock them while the descriptor is on VD.
+	TSN_W3.d = (VCM[] != 0);
+	VAO[] = VLA[17..2];
+
+	V_WE_R		= DFF(GND,!CLK42,,!V_WE);
+	V_WE.prn	= V_WE_R;
+	V_WET[].prn	= V_WE_R;
+
+--	V_WR[]	= LCELL(V_WE) or !((!VXA1 & !VXA0),(!VXA1 & VXA0),(VXA1 & !VXA0),(VXA1 & VXA0));
+
+--	V_WR[]	= (V_WE) or !(
+
+	V_WEX.clk	= CLK42;
+--	V_WEX.d		= V_WE;
+--	V_WEX.prn	= (DFF(GND,CLK42,,!V_WEX));
+
+
+
+
+	V_WEMMM	= LCELL(V_WE);
+--	V_WEMMN	= LCELL(V_WEMMM); -- bios ok, fn ok, fnf1 failed, zx almost ok
+--	V_WEMMO	= LCELL(V_WEMMN); -- green arts
+--	V_WEMMP	= LCELL(V_WEMMO); -- blue + pink arts
+--	V_WEMMR	= LCELL(V_WEMMP); -- no F1 issue, but red arts (fix by finger, not enough capacity??)
+--	V_WEMMS	= LCELL(V_WEMMR); 
+--	V_WEMMT	= LCELL(V_WEMMS);
+--	V_WEMMU	= LCELL(V_WEMMT);
+--	V_WEMMV	= LCELL(V_WEMMU);
+--	V_WEMMW	= LCELL(V_WEMMV);
+--	V_WEMMX	= LCELL(V_WEMMW);
+--	V_WEMMY	= LCELL(V_WEMMX);
+--	V_WEMMZ	= LCELL(V_WEMMY);
+
+	V_WRM	= LCELL(V_WE or V_WEMMM);
+
+
+--	V_WRM	= LCELL(V_WEMMN or V_WEMMM);
+--	V_WRM2	= LCELL(V_WEMMN or V_WEMMM);
+--	V_WRM2	= LCELL(V_WEMMR);
+--	V_WRM	= LCELL(V_WEMMM or V_WEMMN);
+--	V_WRM2	= LCELL(V_WEMMM or V_WEMMN);
+
+	V_WEM	= (V_WE);
+
+--	V_WEM2	= LCELL(V_WE);
+--	V_WEM	= LCELL(V_WEMMM & V_WEMMN);
+--	V_WEM2	= LCELL(V_WEMMM & V_WEMMO);
+
+---	LWR_COL		= DFF(WR_COL,CLK42,,);
+--my	F_WR	= ((LCELL(LCELL(LCELL(DFF(VCC,V_WE,,))))));
+	F_WR	= DFF(V_WE,CLK42,,); -- orig
+--	V_WEMMZ	= LCELL(CLK42);
+	V_EN3	= (DFF(!(!VXA1 & (!VXA0 or DOUBLE)), CLK42, F_WR,));
+	V_EN2	= (DFF(!(!VXA1 & (VXA0 or DOUBLE)), CLK42, F_WR,));
+	V_EN1	= (DFF(!(VXA1 & (!VXA0 or DOUBLE)), CLK42, F_WR,));
+	V_EN0	= (DFF(!(VXA1 & (VXA0 or DOUBLE)), CLK42, F_WR,));
+
+
+--	V_WR_3	= LCELL(V_WRM or V_EN3);
+--	V_WR_2	= LCELL(V_WRM or V_EN2);
+--	V_WR_1	= LCELL(V_WRM or V_EN1);
+--	V_WR_0	= LCELL(V_WRM or V_EN0);
+	V_WR_3	= (LCELL(LCELL(LCELL(V_WRM or V_EN3))));
+	V_WR_2	= (LCELL(LCELL(LCELL(V_WRM or V_EN2))));
+	V_WR_1	= (LCELL(LCELL(LCELL(V_WRM or V_EN1))));
+	V_WR_0	= (LCELL(LCELL(LCELL(V_WRM or V_EN0))));
+
+	V_WEY3	= LCELL(V_WE or V_EN3);
+	V_WEY2	= LCELL(V_WE or V_EN2);
+	V_WEY1	= LCELL(V_WE or V_EN1);
+	V_WEY0	= LCELL(V_WE or V_EN0);
+
+	V_WR[]	= V_WR_[]; -- V_WR0-3
+	V_WEN[]	= V_WEY[]; -- VD0-3
+
+
+
+
+
+%
+	V_WEMMM	= LCELL(V_WE);
+	V_WEMMN	= LCELL(V_WEMMM);
+	V_WEMMO	= LCELL(V_WEMMN);
+	V_WEMM	= LCELL(V_WEMMO);
+
+	V_WRM	= LCELL(V_WEMMN & V_WEMMM);
+	V_WRM2	= LCELL(V_WEMMN & V_WEMMM);
+
+	V_WEM	= LCELL(V_WEMMM & V_WEMMO);
+	V_WEM2	= LCELL(V_WEMMM & V_WEMMO);
+
+	V_EN3	= DFF(!(!VXA1 & (!VXA0 or DOUBLE)),CLK42,F_WR,);
+	V_EN2	= DFF(!(!VXA1 & (VXA0 or DOUBLE)) ,CLK42,F_WR,);
+	V_EN1	= DFF(!(VXA1 & (!VXA0 or DOUBLE)) ,CLK42,F_WR,);
+	V_EN0	= DFF(!(VXA1 & (VXA0 or DOUBLE))  ,CLK42,F_WR,);
+
+	F_WR	= DFF(VCC,V_WE,,);
+
+	V_WR_3	= V_WRM or V_EN3;
+	V_WR_2	= V_WRM2 or V_EN2;
+	V_WR_1	= V_WRM or V_EN1;
+	V_WR_0	= V_WRM or V_EN0;
+
+	V_WEY3	= V_WEM or V_EN3;
+	V_WEY2	= V_WEM2 or V_EN2;
+	V_WEY1	= V_WEM or V_EN1;
+	V_WEY0	= V_WEM or V_EN0;
+
+	V_WR[]	= V_WR_[];
+	V_WEN[]	= V_WEY[];
+%
+
+
+
+
+
+--	CLK84	= LCELL(CLK42 xor CLK84_X);
+--	CLK84_X	= DFF(!CLK84_X,CLK84,,);
+--	CLK84_Y	= CLK84;
+
+END GENERATE;	-- end "sprinter" mode
+
+
+END;

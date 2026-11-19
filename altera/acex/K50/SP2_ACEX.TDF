@@ -317,14 +317,12 @@ BEGIN
 
 --	===== keyboard =========================
 
---	========================================
---	NEW 30.06.2022
---	KEYS.int_ena	= ALL_MODE0;	-- int in all keys
---	KEYS.ena	= !ALL_MODE0;	-- ZX-Keyboard
--- 	new bit3 in ALL_MODE, disables keyboard interruptions w/o accellerator affected
-	KEYS.int_ena	= LCELL(ALL_MODE0 & ALL_MODE3); 
-	KEYS.ena	= VCC; -- ZX-Keyboard always enabled
---	========================================
+	IF SCROLL_GAME == 1 GENERATE
+		KEYS.int_ena = ALL_MODE0;
+	ELSE GENERATE
+		KEYS.int_ena = LCELL(ALL_MODE0 & ALL_MODE3);
+	END GENERATE;
+	KEYS.ena = VCC; -- ZX-Keyboard always enabled
 
 	KEYS.clk42	= CLK42;
 	KEYS.clk_k	= DFF(CTH5,CLK42,,);
@@ -1024,21 +1022,20 @@ END GENERATE;
 
 	SVIDEO.ZX_PORT[5..0]	= (ACC.G_LINE[5..0]);
 
--- 	NEW 25.08.2022
--- 	disable zx adressing due accelerator is on
---	SVIDEO.ZX_PORT[7..6]	= (DECODE.SP_SA,LCELL(DECODE.SP_SCR & !(A13 & !ACC.G_LINE7) & !ACC.G_LINE6));
-	SVIDEO.ZX_PORT[7..6] 	= (DECODE.SP_SA,LCELL(DECODE.SP_SCR & !(A13 & !ACC.G_LINE7) & !ACC.G_LINE6 & !ALL_MODE0));
-
-	SVIDEO.DIR_PORT[0]		= DECODE.SCR128;
-
-	SVIDEO.DIR_PORT[3]		= RGMOD0;
-
-	IF (SCREEN_OFF == "USE") GENERATE
-		SVIDEO.DIR_PORT[4]		= RGMOD1;	-- 1 screen off, 0 - screen on
+	IF SCROLL_GAME == 1 GENERATE
+		SVIDEO.ZX_PORT[7..6] = (DECODE.SP_SA,LCELL(DECODE.SP_SCR & !(A13 & !ACC.G_LINE7) & !ACC.G_LINE6 & ALL_MODE3));
+		SVIDEO.DIR_PORT[4] = RGMOD2; -- SCROLL C5/CD bit 2 blanks the palette index
 	ELSE GENERATE
-		SVIDEO.DIR_PORT[4]		= GND;		-- 1 screen off, 0 - screen on
+		SVIDEO.ZX_PORT[7..6] = (DECODE.SP_SA,LCELL(DECODE.SP_SCR & !(A13 & !ACC.G_LINE7) & !ACC.G_LINE6 & !ALL_MODE0));
+		IF (SCREEN_OFF == "USE") GENERATE
+			SVIDEO.DIR_PORT[4] = RGMOD1;
+		ELSE GENERATE
+			SVIDEO.DIR_PORT[4] = GND;
+		END GENERATE;
 	END GENERATE;
 
+	SVIDEO.DIR_PORT[0] = DECODE.SCR128;
+	SVIDEO.DIR_PORT[3] = RGMOD0;
 	SVIDEO.DIR_PORT[2..1]	= GND;
 	SVIDEO.DIR_PORT[7..5]	= BORDER[2..0];
 --	SVIDEO.DIR_PORT[7..5]	= MS.OUT_X[7..5];

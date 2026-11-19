@@ -1,4 +1,4 @@
-"""Executable specification, not an AHDL/netlist simulator.
+"""Behavioral model of the archived pre-SCROLL reconstruction.
 
 One step is one CLK42 rising edge followed by SRAM settling. Banks are
 VDM0..3; logical byte zero resides in VDM3. SRAM latency is configurable.

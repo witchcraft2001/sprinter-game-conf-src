@@ -1,4 +1,4 @@
-"""Bounded interpreter for the actual GAME_K50 TDF read pipeline.
+"""Bounded interpreter for the archived reconstructed TDF read pipeline.
 
 Supports the combinational expressions, IF/CASE and CLK42 DFFE assignments
 used there. Unsupported syntax fails; this is not a MAX+plus II compiler,

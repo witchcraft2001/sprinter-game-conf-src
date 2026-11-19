@@ -77,45 +77,19 @@ try {
                 assert.ok(devices.every(line => line.includes('EP1' + chip + 'QC208-3;')));
             }
             assert.ok(!io.exists(work + '/SP2_ACEX.ttf'));
-            const video = io.readText(root + '/altera/acex/' + (variant === 'STANDARD_K50' ? 'K50' : 'GAME_K50') + '/VIDEO2.TDF');
-            assert.strictEqual(io.readText(work + '/VIDEO2.TDF'), variant === 'STANDARD_K50' ? video : build.transformGameVideo(video, variant));
+            const stock = root + '/altera/acex/K50/';
+            const isGame = variant !== 'STANDARD_K50';
+            const video = isGame ? root + '/altera/acex/GAME_K50/' : stock;
+            for (const name of ['VIDEO2.TDF', 'VIDEO2.INC']) {
+                assert.deepStrictEqual(fs.readFileSync(work + '/' + name), fs.readFileSync(video + name));
+            }
+            assert.ok(io.readText(work + '/VIDEO2.INC').includes('CONSTANT SCROLL_GAME = ' + (isGame ? 1 : 0) + ';'));
+            for (const name of ['SP2_ACEX.TDF', 'AY.TDF', 'AY.INC', 'AY.MIF', 'DCP.TDF', 'DCP.MIF', 'KBD.TDF']) {
+                assert.deepStrictEqual(fs.readFileSync(work + '/' + name), fs.readFileSync(stock + name));
+            }
             assert.throws(() => build.prepare(io, root + '/altera/acex', work, variant), /already exists/);
         });
     }
-    test('target scroll and border stages preserve bus slots and write pipeline', () => {
-        const common = io.readText(root + '/altera/acex/GAME_K50/VIDEO2.TDF');
-        const k30 = build.transformGameVideo(common, 'GAME_K30');
-        assert.ok(k30.includes('G_SUM_X[8..0] : NODE;'));
-        assert.ok(!k30.includes('G_SUM_X[].ena'));
-        const withoutSumStage = t => t.replace(/G_SUM_X\[8\.\.0\] : (?:NODE|DFFE);/, '')
-            .replace('G_SUM_X[].clk = CLK42; ', '').replace('G_SUM_X[].ena = (VCM[] == 5); ', '');
-        assert.ok(k30.includes('G_EFFECTIVE[7..0] : DFFE;'));
-        assert.throws(() => build.transformGameVideo(common.replace('G_SUM_X[8..0] : DFFE;', ''), 'GAME_K30'), /review K30/);
-        const k50 = build.transformGameVideo(common, 'GAME_K50');
-        assert.ok(k50.includes('G_EFFECTIVE[7..0] : DFFE;'));
-        assert.ok(!k50.includes('G_EFFECTIVE_X'));
-        assert.ok(k50.includes('G_RASTER_BLOCK.ena = G_MODE_CAPTURE;'));
-        assert.ok(k50.includes('G_RASTER_BLOCK = (CT[5..3] != 6) or (VDM3[7..5] == 7);'));
-        assert.ok(k50.includes('G_APPLY = G_PENDING_VALID & ((G_LOCAL_X[] == 7) or !G_RASTER_BLOCK);'));
-        for (const boundary of ['G_RASTER_END : DFFE;', 'G_RASTER_END = (CT[5..3] == 6);', 'or (G_RASTER_END & (MODE0[7..5] != 7)))']) {
-            assert.throws(() => build.transformGameVideo(common.replace(boundary, ''), 'GAME_K50'), /review K50/);
-        }
-        for (let mode = 1; mode <= 3; mode++) {
-            assert.ok(common.includes(`MODE${mode}[].ena = G_CAPTURE;`));
-            assert.ok(k50.includes(`MODE${mode}[].ena = G_MODE_CAPTURE;`));
-            assert.throws(() => build.transformGameVideo(common.replace(`MODE${mode}[].ena = G_CAPTURE;`, ''), 'GAME_K50'), /review K50/);
-        }
-        const withoutScrollStage = t => t.replace(/G_EFFECTIVE\[7\.\.0\][\s\S]*?(?=G_LOCAL_X)/, '')
-            .replace(/G_EFFECTIVE(?:_X)?\[\]\.clk[\s\S]*?(?=G_SCROLL\[\]\.clk)/, '')
-            .replace(/MODE([123])\[\]\.ena = G_MODE_CAPTURE;/g, 'MODE$1[].ena = G_CAPTURE;')
-            .replace(/G_RASTER_(?:BLOCK|END) : DFFE;/, '')
-            .replace(/G_RASTER_(?:BLOCK|END)\.clk[\s\S]*?(?=\r?\n\r?\n)/, '')
-            .replace(/G_APPLY = G_PENDING_VALID[\s\S]*?;/, '');
-        assert.strictEqual(withoutScrollStage(k50), withoutScrollStage(common));
-        assert.strictEqual(withoutSumStage(withoutScrollStage(k30)), withoutSumStage(withoutScrollStage(common)));
-        assert.throws(() => build.transformGameVideo(common.replace('G_EFFECTIVE_X[3..0] : DFFE;', ''), 'GAME_K50'), /review K50/);
-        assert.throws(() => build.transformGameVideo(common, 'STANDARD_K50'), /Standard/);
-    });
     test('valid packaging and variant gating', () => {
         const work = temp + '/GAME_K50'; fixture(work);
         assert.throws(() => build.verifyDirectory(io, work, 'STANDARD_K50'), /Variant mismatch/);

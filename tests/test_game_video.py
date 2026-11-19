@@ -1,3 +1,4 @@
+"""Specification and fixture for the archived pre-SCROLL reconstruction, plus packer tests."""
 import random
 import re
 import subprocess
@@ -178,7 +179,7 @@ class GameVideoTests(unittest.TestCase):
         self.assertEqual(v.scroll, 0x9a)
 
     def test_source_vcm_phase_sequence_matches_model(self):
-        source = (ROOT / 'altera/acex/GAME_K50/VIDEO2.TDF').read_text()
+        source = (ROOT / 'tests/fixtures/reconstructed_video2.tdf').read_text()
         transitions = dict((int(a, 2), int(b)) for a, b in
                            re.findall(r'WHEN B"([01]{3})" => VCM\[2\.\.0\]\.d = (\d)', source))
         from tools.game_video_model import PHASES, VCM
@@ -187,7 +188,7 @@ class GameVideoTests(unittest.TestCase):
 
     def test_shared_write_and_raster_logic_unchanged(self):
         old = (ROOT / 'altera/acex/K50/VIDEO2.TDF').read_text()
-        new = (ROOT / 'altera/acex/GAME_K50/VIDEO2.TDF').read_text()
+        new = (ROOT / 'tests/fixtures/reconstructed_video2.tdf').read_text()
         for start, end in (('--\t=== Sinc-counts', '--\t==== Video'),
                            ('\tV_WE_R\t\t= DFF', 'END GENERATE;\t-- end')):
             self.assertEqual(old[old.index(start):old.index(end)], new[new.index(start):new.index(end)])

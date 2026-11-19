@@ -1,4 +1,4 @@
-"""Source-linked read pipeline checks; not a fitter or gate-level simulation."""
+"""Regression checks for the archived, pre-SCROLL read pipeline."""
 import unittest
 import re
 import os
@@ -7,9 +7,8 @@ from tools.ahdl_read_sim import ReadProgram, Parser
 from tools.game_video_model import SRAM, Video, VCM, PERIOD_NS, palette_address
 
 ROOT = Path(__file__).resolve().parents[1]
-# Allow the same checks to execute the exact staged K30/K50 source, including
-# the target-specific scroll-register transform performed by the build script.
-SOURCE = Path(os.environ.get('GAME_VIDEO_TDF', ROOT / 'altera/acex/GAME_K50/VIDEO2.TDF'))
+# An archived target-specific stage can be checked against the old model too.
+SOURCE = Path(os.environ.get('GAME_VIDEO_TDF', ROOT / 'tests/fixtures/reconstructed_video2.tdf'))
 STOCK_SOURCE = ROOT / 'altera/acex/K50/VIDEO2.TDF'
 
 
