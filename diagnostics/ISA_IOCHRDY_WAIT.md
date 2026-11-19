@@ -188,7 +188,11 @@ WAIT_OD  = "ISA"    -- "ISA": 0/Z во время цикла ISA, "ALL": чис�
    * B: `ISA_WAIT = 20`, `WAIT_OD = "OFF"` (только длинный цикл);
    * C: `ISA_WAIT = 3`, `WAIT_OD = "ISA"` (только убран активный фронт, цикл почти прежний).
    * O: исходный `SP2_ACEX.TDF` (эталон для сравнения на той же плате).
-   Сборка всех четырёх: `altera\acex\build_iochrdy.bat [K30|K50] [O A B C]`, результат в
+   * F: `ISA_WAIT = 0`, `WAIT_OD = "OFF"`, `ISA_CLK_FIX = 1` (исходный цикл ISA, только
+     защёлка 9FBD без ложных тактов, см. EXT_ISA_MODULE.md п. 2.1 и п. 8);
+   * G: `ISA_WAIT = 20`, `WAIT_OD = "ISA"`, `ISA_CLK_FIX = 1` (A + защёлка). Варианты A–E
+     собираются с `ISA_CLK_FIX = 0`.
+   Сборка: `altera\acex\build_iochrdy.bat [K30|K50] [O A B C D E F G]`, результат в
    `altera\acex\iochrdy\out\STREAM_<чип>_<вариант>.BIN`. Параметры подставляет
    `iochrdy\setparam.ps1` (нужен PowerShell), исходники в `K30\`/`K50\` не меняются.
    Если A и B лечат PicoGUS, а C нет, доминирует дефект 1. Если C лечит часть случаев в turbo,
